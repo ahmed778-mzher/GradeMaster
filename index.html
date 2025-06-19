@@ -3,613 +3,853 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>حاسبة المعدل الجامعي</title>
-    <!-- Tailwind CSS -->
+    <title>GradeMaster Pro - حاسبة المعدلات الجامعية</title>
     <script src="https://cdn.tailwindcss.com"></script>
-    <!-- Google Fonts: Cairo -->
-    <link rel="preconnect" href="https://fonts.googleapis.com">
-    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Cairo:wght@400;700;900&display=swap" rel="stylesheet">
     <style>
-        body {
-            font-family: 'Cairo', sans-serif;
-            background-color: #1e293b; /* slate-800 */
-            color: #f1f5f9; /* slate-100 */
+        /* Base styles for dark and light themes */
+        :root {
+            --bg-primary: #0f172a; --bg-secondary: #1e293b; --bg-tertiary: #334155;
+            --bg-interactive: #475569; --border-color: #334155; --text-primary: #f1f5f9;
+            --text-secondary: #94a3b8; --accent-color: #38bdf8; --accent-hover: #0ea5e9;
         }
-        /* Custom scrollbar for better aesthetics */
-        ::-webkit-scrollbar {
-            width: 8px;
+        .light-theme {
+            --bg-primary: #f1f5f9; --bg-secondary: #ffffff; --bg-tertiary: #e2e8f0;
+            --bg-interactive: #f1f5f9; --border-color: #e2e8f0; --text-primary: #1e293b;
+            --text-secondary: #64748b;
         }
-        ::-webkit-scrollbar-track {
-            background: #0f172a; /* slate-900 */
-        }
-        ::-webkit-scrollbar-thumb {
-            background: #475569; /* slate-600 */
-            border-radius: 10px;
-        }
-        ::-webkit-scrollbar-thumb:hover {
-            background: #64748b; /* slate-500 */
-        }
-        /* Custom styles for the switch */
-        .switch {
-            position: relative;
-            display: inline-block;
-            width: 200px;
-            height: 44px;
-        }
-        .switch .slider {
-            position: absolute;
-            cursor: pointer;
-            top: 0;
-            left: 0;
-            right: 0;
-            bottom: 0;
-            background-color: #334155;
-            transition: .4s;
-            border-radius: 44px;
-            display: flex;
-            align-items: center;
-            justify-content: space-around;
-            padding: 0 10px;
-            font-weight: bold;
-            color: #94a3b8;
-        }
-        .slider:before {
-            position: absolute;
-            content: "";
-            height: 36px;
-            width: 96px;
-            left: 4px;
-            bottom: 4px;
-            background-color: #0ea5e9; /* sky-500 */
-            transition: .4s;
-            border-radius: 30px;
-            z-index: 0;
-        }
-        .slider span {
-            z-index: 1;
-            transition: color .4s;
-        }
-        .slider .active {
-            color: white;
-        }
-        #system-switch:checked + .slider:before {
-            transform: translateX(96px);
-        }
-        /* Animation keyframes */
-        @keyframes fadeIn {
-            from { opacity: 0; transform: translateY(-10px); }
-            to { opacity: 1; transform: translateY(0); }
-        }
-        @keyframes fadeOut {
-            from { opacity: 1; transform: scale(1); }
-            to { opacity: 0; transform: scale(0.9); }
-        }
-        .animate-fade-in {
-            animation: fadeIn 0.4s ease-out forwards;
-        }
-        .animate-fade-out {
-            animation: fadeOut 0.3s ease-in forwards;
-        }
-        .modal-overlay {
-            transition: opacity 0.3s ease-in-out;
-        }
-        /* Custom Radio Button */
-        input[type="radio"]:checked + label {
-            background-color: #0ea5e9;
-            color: white;
-            border-color: #0ea5e9;
-        }
-        /* Tooltip Styles */
-        #tooltip {
-            position: absolute;
-            background-color: #334155;
-            color: white;
-            padding: 8px 12px;
-            border-radius: 6px;
-            font-size: 0.8rem;
-            z-index: 100;
-            opacity: 0;
-            visibility: hidden;
-            transition: opacity 0.2s, visibility 0.2s;
-            max-width: 250px;
-            text-align: center;
-        }
-        #tooltip.visible {
-            opacity: 1;
-            visibility: visible;
-        }
+        body { font-family: 'Cairo', sans-serif; background-color: var(--bg-primary); color: var(--text-primary); transition: background-color 0.3s, color 0.3s; }
+        .main-container { background-color: var(--bg-secondary); border: 1px solid var(--border-color); transition: background-color 0.3s, border-color 0.3s; }
+        .card-bg { background-color: var(--bg-secondary); border: 1px solid var(--border-color); }
+        .light-theme .card-bg { background-color: #f8fafc; }
+        .header-bg { background-color: rgba(15, 23, 42, 0.5); }
+        .light-theme .header-bg { background-color: rgba(226, 232, 240, 0.5); }
+
+        /* Animation and transition styles */
+        .tab { transition: all 0.3s ease; border-bottom: 3px solid transparent; color: var(--text-secondary); }
+        .tab.active { color: var(--accent-color); border-bottom-color: var(--accent-color); }
+        .light-theme .tab.active { color: var(--accent-hover); border-bottom-color: var(--accent-hover); }
+        .tab-content, .animate-fade-in { animation: fadeIn 0.5s ease-out forwards; }
+        @keyframes fadeIn { from { opacity: 0; transform: translateY(15px); } to { opacity: 1; transform: translateY(0); } }
+        .hidden { display: none; }
+        .animate-pop-in { animation: popIn 0.4s cubic-bezier(0.68, -0.55, 0.27, 1.55) forwards; }
+        @keyframes popIn { 0% { opacity: 0; transform: scale(0.8); } 100% { opacity: 1; transform: scale(1); } }
+        
+        /* Form and input styles */
+        .input-field { background-color: var(--bg-tertiary); border: 1px solid var(--border-color); transition: all 0.2s ease-in-out; color: var(--text-primary); }
+        .input-field:focus { background-color: var(--bg-interactive); border-color: var(--accent-color); outline: none; }
+        select option { background-color: #334155; color: white; }
+        .light-theme select option { background-color: white; color: black; }
+        input[type="radio"]:checked + label { background-color: var(--accent-hover); color: white; border-color: var(--accent-hover); }
+
+        /* Button styles */
+        .btn-primary { background-color: var(--accent-hover); color: white; }
+        .btn-primary:hover { background-color: #0284c7; }
+        .btn-primary:disabled { background-color: #334155; color: #64748b; cursor: not-allowed; }
+        .btn-secondary { background-color: #475569; color: #e2e8f0; }
+        .btn-secondary:hover { background-color: #64748b; }
+        .light-theme .btn-secondary { background-color: #e2e8f0; color: #334155; }
+        .light-theme .btn-secondary:hover { background-color: #cbd5e1; }
+        
+        /* Modal and Toast styles */
+        .modal-overlay { transition: opacity 0.3s ease-in-out; }
     </style>
 </head>
-<body class="antialiased">
+<body class="antialiased p-4">
 
-    <div id="app" class="min-h-screen flex flex-col items-center justify-start p-4 pt-10">
-        
-        <!-- Main Application Container -->
-        <div class="w-full max-w-lg md:max-w-2xl bg-slate-900 rounded-2xl shadow-2xl overflow-hidden flex flex-col p-6 sm:p-8">
+    <div id="app" class="min-h-screen flex flex-col items-center justify-start">
+        <div class="w-full max-w-4xl main-container rounded-2xl shadow-2xl overflow-hidden flex flex-col">
+            
+            <!-- Header Section -->
+            <header class="text-center p-6 header-bg relative">
+                <h1 class="text-3xl md:text-4xl font-bold text-primary">GradeMaster Pro</h1>
+                <p class="text-secondary mt-1">الأداة الشاملة لحساب معدلاتك الجامعية</p>
+                <button id="theme-switcher" title="تبديل المظهر" class="absolute top-5 left-5 text-secondary p-2 rounded-full hover:bg-gray-500/20 transition">
+                    <svg id="theme-icon-dark" class="w-6 h-6" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"></path></svg>
+                    <svg id="theme-icon-light" class="w-6 h-6 hidden" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="5"></circle><line x1="12" y1="1" x2="12" y2="3"></line><line x1="12" y1="21" x2="12" y2="23"></line><line x1="4.22" y1="4.22" x2="5.64" y2="5.64"></line><line x1="18.36" y1="18.36" x2="19.78" y2="19.78"></line><line x1="1" y1="12" x2="3" y2="12"></line><line x1="21" y1="12" x2="23" y2="12"></line><line x1="4.22" y1="19.78" x2="5.64" y2="18.36"></line><line x1="18.36" y1="5.64" x2="19.78" y2="4.22"></line></svg>
+                </button>
+            </header>
 
-            <!-- ===== Header ===== -->
-            <div class="text-center mb-6">
-                <h1 class="text-3xl font-bold text-white"> GradeMaster - حاسبة المعدل</h1>
-                <p id="system-subtitle" class="text-sky-400 font-semibold mt-1">نظام بولونيا</p>
-            </div>
+            <!-- Navigation Tabs -->
+            <nav class="flex border-b border-color">
+                <button data-tab="courses" class="tab flex-1 py-4 px-2 text-center font-bold text-lg active">المعدل الفصلي (كورسات)</button>
+                <button data-tab="bologna" class="tab flex-1 py-4 px-2 text-center font-bold text-lg">المعدل الفصلي (بولونيا)</button>
+                <button data-tab="graduation" class="tab flex-1 py-4 px-2 text-center font-bold text-lg">معدل التخرج</button>
+            </nav>
 
-            <!-- ===== System Switch ===== -->
-            <div class="mb-8 flex justify-center">
-                <label class="switch">
-                    <input type="checkbox" id="system-switch" class="hidden">
-                    <div class="slider">
-                        <span id="courses-label">الكورسات</span>
-                        <span id="bologna-label" class="active">بولونيا</span>
+            <div class="p-6 sm:p-8">
+                <!-- Tab 1: Courses GPA Calculator -->
+                <div id="tab-content-courses" class="tab-content">
+                    <div class="card-bg rounded-xl p-6 text-center mb-6">
+                        <div class="grid grid-cols-1 sm:grid-cols-3 gap-4 items-center">
+                            <div><p class="text-secondary text-sm">معدل الفصل الأول</p><p id="gpa-courses-s1" class="text-3xl font-bold text-primary">0.00</p></div>
+                            <div class="p-4 bg-slate-900/50 light-theme:bg-slate-100 rounded-lg"><p class="text-secondary text-base font-bold">المعدل السنوي</p><p id="gpa-courses-yearly" class="text-5xl font-black text-sky-400 my-1">0.00</p><p id="grade-name-courses" class="text-lg font-bold text-primary mt-1">التقدير</p></div>
+                            <div><p class="text-secondary text-sm">معدل الفصل الثاني</p><p id="gpa-courses-s2" class="text-3xl font-bold text-primary">0.00</p></div>
+                        </div>
                     </div>
-                </label>
+                    <div class="mb-6">
+                        <p class="text-center font-bold text-primary mb-3">دقة حساب التقدير</p>
+                        <div class="flex justify-center gap-2" id="courses-options">
+                            <input type="radio" name="calc-mode" id="mode-high" value="high" class="hidden"><label for="mode-high" class="cursor-pointer py-2 px-4 rounded-lg text-sm border border-slate-600 transition">قيم عليا</label>
+                            <input type="radio" name="calc-mode" id="mode-median" value="median" class="hidden" checked><label for="mode-median" class="cursor-pointer py-2 px-4 rounded-lg text-sm border border-slate-600 transition">قيم وسطية</label>
+                            <input type="radio" name="calc-mode" id="mode-low" value="low" class="hidden"><label for="mode-low" class="cursor-pointer py-2 px-4 rounded-lg text-sm border border-slate-600 transition">قيم دنيا</label>
+                        </div>
+                    </div>
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-x-8 gap-y-6 border-t border-color pt-6">
+                         <div class="card-bg p-4 rounded-lg">
+                            <div class="flex justify-between items-center mb-4"><h2 class="text-xl font-bold text-primary">الفصل الدراسي الأول</h2><button id="add-course-courses-s1" class="text-sky-400 text-2xl font-bold hover:text-sky-300 transition">+</button></div>
+                            <div id="courses-s1-container" class="space-y-3 max-h-64 overflow-y-auto pr-2"></div>
+                        </div>
+                        <div class="card-bg p-4 rounded-lg">
+                           <div class="flex justify-between items-center mb-4"><h2 class="text-xl font-bold text-primary">الفصل الدراسي الثاني</h2><button id="add-course-courses-s2" class="text-sky-400 text-2xl font-bold hover:text-sky-300 transition">+</button></div>
+                            <div id="courses-s2-container" class="space-y-3 max-h-64 overflow-y-auto pr-2"></div>
+                        </div>
+                    </div>
+                    <div class="mt-8 grid grid-cols-1 gap-4">
+                        <div class="flex items-center gap-2 mb-2 justify-center">
+                            <input type="checkbox" id="courses-terms-checkbox" class="accent-sky-500" />
+                            <label for="courses-terms-checkbox" class="text-xs text-secondary cursor-pointer">
+                                أوافق على <a href="terms.html" class="text-sky-400 underline hover:text-sky-600">الشروط والأحكام</a>
+                            </label>
+                        </div>
+                        <button id="calculate-courses-btn" class="w-full btn-primary font-bold py-3 px-4 rounded-lg transition-transform transform hover:scale-105" disabled>✓ حساب المعدل السنوي</button>
+                        <button id="clear-courses-btn" class="w-full btn-secondary font-bold py-2 px-4 rounded-lg transition">مسح الكل</button>
+                    </div>
+                </div>
+
+                <!-- Tab 2: Bologna Semester GPA Calculator -->
+                <div id="tab-content-bologna" class="tab-content hidden">
+                     <div class="grid grid-cols-1 md:grid-cols-2 gap-x-8 gap-y-6">
+                        <div class="card-bg p-4 rounded-lg">
+                            <div class="flex justify-between items-center mb-4"><h2 class="text-xl font-bold text-primary">الفصل الدراسي الأول</h2><button id="add-course-bologna-s1" class="text-sky-400 text-2xl font-bold hover:text-sky-300 transition">+</button></div>
+                            <div id="bologna-s1-container" class="space-y-3 max-h-64 overflow-y-auto pr-2"></div>
+                        </div>
+                        <div class="card-bg p-4 rounded-lg">
+                           <div class="flex justify-between items-center mb-4"><h2 class="text-xl font-bold text-primary">الفصل الدراسي الثاني</h2><button id="add-course-bologna-s2" class="text-sky-400 text-2xl font-bold hover:text-sky-300 transition">+</button></div>
+                            <div id="bologna-s2-container" class="space-y-3 max-h-64 overflow-y-auto pr-2"></div>
+                        </div>
+                    </div>
+                    <div class="mt-8">
+                        <div class="card-bg rounded-xl p-6 text-center mb-6">
+                            <div class="grid grid-cols-1 sm:grid-cols-3 gap-4 items-center">
+                                <div><p class="text-secondary text-sm">معدل الفصل الأول</p><p id="gpa-bologna-s1" class="text-3xl font-bold text-primary">0.00</p></div>
+                                <div class="p-4 bg-slate-900/50 light-theme:bg-slate-100 rounded-lg"><p class="text-secondary text-base font-bold">المعدل السنوي</p><p id="gpa-bologna-yearly" class="text-5xl font-black text-sky-400 my-1">0.00</p></div>
+                                <div><p class="text-secondary text-sm">معدل الفصل الثاني</p><p id="gpa-bologna-s2" class="text-3xl font-bold text-primary">0.00</p></div>
+                            </div>
+                        </div>
+                        <div class="grid grid-cols-1 gap-4">
+                            <div class="flex items-center gap-2 mb-2 justify-center">
+                                <input type="checkbox" id="bologna-terms-checkbox" class="accent-sky-500" />
+                                <label for="bologna-terms-checkbox" class="text-xs text-secondary cursor-pointer">
+                                     أوافق على <a href="#" onclick="event.preventDefault(); showToast('صفحة الشروط والأحكام غير متوفرة بعد.', 'info')" class="text-sky-400 underline hover:text-sky-600">الشروط والأحكام</a>
+                                </label>
+                            </div>
+                            <button id="calculate-bologna-btn" class="w-full btn-primary font-bold py-3 px-4 rounded-lg transition-transform transform hover:scale-105" disabled>✓ حساب المعدل السنوي</button>
+                            <button id="clear-bologna-btn" class="w-full btn-secondary font-bold py-2 px-4 rounded-lg transition">مسح الكل</button>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Tab 3: Graduation Average Calculator -->
+                <div id="tab-content-graduation" class="tab-content hidden">
+                    <div class="flex flex-col md:flex-row gap-8">
+                        <div class="w-full md:w-1/2">
+                             <label for="study-duration" class="block mb-2 font-bold text-primary">اختر مدة الدراسة الكلية:</label>
+                             <select id="study-duration" class="w-full p-3 input-field rounded-lg"></select>
+                             <div id="yearly-inputs-container" class="mt-6 space-y-4"></div>
+                        </div>
+                        <div class="w-full md:w-1/2 flex flex-col items-center justify-center card-bg p-6 rounded-lg">
+                            <p class="text-secondary text-lg">معدل التخرج النهائي</p>
+                            <p id="gpa-graduation" class="text-7xl font-black text-sky-400 my-2">0.00</p>
+                            <p id="grade-name-graduation" class="text-2xl font-bold text-primary">التقدير</p>
+                            <div class="w-full mt-8 grid grid-cols-1 gap-4">
+                               <button id="calculate-graduation-btn" class="w-full btn-primary font-bold py-3 px-4 rounded-lg transition-transform transform hover:scale-105">✓ حساب معدل التخرج</button>
+                               <button id="clear-graduation-btn" class="w-full btn-secondary font-bold py-2 px-4 rounded-lg transition">مسح الكل</button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
             </div>
 
-            <!-- ===== Results Display ===== -->
-            <div class="bg-slate-800/70 rounded-xl p-6 text-center mb-6">
-                <div id="bologna-results">
-                    <p class="text-slate-400 text-sm">المعدل النهائي (GPA)</p>
-                    <p id="gpa-bologna" class="text-6xl font-black text-sky-400 my-2">0.00</p>
-                    <p id="grade-name-bologna" class="text-xl font-bold text-slate-200">التقدير</p>
-                    <p id="total-ects" class="text-slate-400 text-sm mt-4">مجموع الوحدات: 0</p>
-                </div>
-                <div id="courses-results" class="hidden">
-                     <p class="text-slate-400 text-sm">المعدل النهائي</p>
-                    <p id="gpa-courses" class="text-6xl font-black text-sky-400 my-2">0.00</p>
-                    <p id="grade-name-courses" class="text-xl font-bold text-slate-200">التقدير</p>
-                </div>
-            </div>
-
-            <!-- ===== Calculation Mode Options (for Courses System) ===== -->
-            <div id="courses-options" class="hidden mb-6">
-                <p class="text-center font-bold text-slate-300 mb-3">دقة حساب التقدير</p>
-                <div class="flex justify-center gap-2">
-                    <input type="radio" name="calc-mode" id="mode-high" value="high" class="hidden">
-                    <label for="mode-high" data-tooltip="high" class="cursor-pointer py-2 px-4 rounded-lg text-sm border border-slate-600 transition">قيم عليا</label>
-                    
-                    <input type="radio" name="calc-mode" id="mode-median" value="median" class="hidden" checked>
-                    <label for="mode-median" data-tooltip="median" class="cursor-pointer py-2 px-4 rounded-lg text-sm border border-slate-600 transition">قيم وسطية</label>
-                    
-                    <input type="radio" name="calc-mode" id="mode-low" value="low" class="hidden">
-                    <label for="mode-low" data-tooltip="low" class="cursor-pointer py-2 px-4 rounded-lg text-sm border border-slate-600 transition">قيم دنيا</label>
-                </div>
-            </div>
-            
-            <!-- ===== Action Buttons ===== -->
-            <div class="space-y-3 mb-6">
-                <button id="calculate-btn" class="w-full bg-sky-500 hover:bg-sky-600 text-white font-bold py-3 px-4 rounded-lg transition-transform transform hover:scale-105">
-                    ✓ حساب المعدل
-                </button>
-                <button id="print-btn" class="w-full bg-slate-700 hover:bg-slate-600 text-sky-300 font-bold py-3 px-4 rounded-lg transition flex items-center justify-center gap-2">
-                    <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="6 9 6 2 18 2 18 9"></polyline><path d="M6 18H4a2 2 0 0 1-2-2v-5a2 2 0 0 1 2-2h16a2 2 0 0 1 2 2v5a2 2 0 0 1-2 2h-2"></path><rect x="6" y="14" width="12" height="8"></rect></svg>
-                    طباعة التقرير
-                </button>
-                <button id="clear-btn" class="w-full bg-slate-600 hover:bg-slate-700 text-white font-bold py-3 px-4 rounded-lg transition">
-                    مسح الكل
-                </button>
-            </div>
-
-            <!-- ===== Course List ===== -->
-            <div class="border-t border-slate-700 pt-6">
-                 <button id="add-course-btn" class="w-full bg-slate-700/50 hover:bg-slate-700 text-sky-400 font-bold py-3 px-4 rounded-lg mb-4 transition-transform transform hover:scale-105">
-                    + إضافة مادة جديدة
-                </button>
-                <div id="courses-container" class="w-full space-y-3 max-h-[30vh] overflow-y-auto pr-2">
-                    <!-- Course rows will be inserted here by JavaScript -->
-                </div>
-            </div>
-            
-            <!-- ===== Footer ===== -->
-            <div class="w-full flex flex-col sm:flex-row justify-between items-center text-center mt-auto pt-6">
-                 <div class="flex gap-4 mb-2 sm:mb-0">
-                    <a href="https://github.com/Ahmed778-Mzher" target="_blank" class="text-slate-500 hover:text-sky-400 transition">
-                        <svg class="w-6 h-6" fill="currentColor" viewBox="0 0 24 24"><path d="M12 0c-6.626 0-12 5.373-12 12 0 5.302 3.438 9.8 8.207 11.387.599.111.793-.261.793-.577v-2.234c-3.338.726-4.033-1.416-4.033-1.416-.546-1.387-1.333-1.756-1.333-1.756-1.089-.745.083-.729.083-.729 1.205.084 1.839 1.237 1.839 1.237 1.07 1.834 2.807 1.304 3.492.997.107-.775.418-1.305.762-1.604-2.665-.305-5.467-1.334-5.467-5.931 0-1.311.469-2.381 1.236-3.221-.124-.303-.535-1.524.117-3.176 0 0 1.008-.322 3.301 1.23.957-.266 1.983-.399 3.003-.404 1.02.005 2.047.138 3.006.404 2.291-1.552 3.297-1.23 3.297-1.23.653 1.653.242 2.874.118 3.176.77.84 1.235 1.91 1.235 3.221 0 4.609-2.807 5.624-5.479 5.921.43.372.823 1.102.823 2.222v3.293c0 .319.192.694.801.576 4.765-1.589 8.199-6.086 8.199-11.386 0-6.627-5.373-12-12-12z"/></svg>
+            <!-- Footer -->
+            <footer class="w-full flex flex-col sm:flex-row justify-between items-center text-center mt-auto p-4 border-t border-color">
+                <div id="save-status" class="text-xs text-secondary mb-2 sm:mb-0">جاهز</div>
+                <div class="flex flex-col sm:flex-row gap-2 sm:gap-4 items-center">
+                    <a href="https://ahmed778-mzher.github.io/Ahmed/" target="_blank" class="text-xs text-secondary hover:text-sky-400">برمجة: Ahmed S.Jabbar</a>
+                    <a href="https://instagram.com/ahmed778.mzher" target="_blank" class="text-xs text-secondary hover:text-sky-400 flex items-center gap-1">
+                        <svg class="w-4 h-4" fill="currentColor" viewBox="0 0 24 24"><path d="M7.75 2h8.5A5.75 5.75 0 0 1 22 7.75v8.5A5.75 5.75 0 0 1 16.25 22h-8.5A5.75 5.75 0 0 1 2 16.25v-8.5A5.75 5.75 0 0 1 7.75 2zm0 1.5A4.25 4.25 0 0 0 3.5 7.75v8.5A4.25 4.25 0 0 0 7.75 20.5h8.5A4.25 4.25 0 0 0 20.5 16.25v-8.5A4.25 4.25 0 0 0 16.25 3.5h-8.5zm4.25 3.25a5.25 5.25 0 1 1 0 10.5 5.25 5.25 0 0 1 0-10.5zm0 1.5a3.75 3.75 0 1 0 0 7.5 3.75 3.75 0 0 0 0-7.5zm5.13.88a1 1 0 1 1-2 0 1 1 0 0 1 2 0z"/></svg>
+                        instagram
                     </a>
-                    <a href="https://www.instagram.com/st_at_23" target="_blank" class="text-slate-500 hover:text-sky-400 transition">
-                       <svg class="w-6 h-6" fill="currentColor" viewBox="0 0 24 24"><path d="M12 2.163c3.204 0 3.584.012 4.85.07 1.366.062 2.633.334 3.608 1.308.974.974 1.246 2.241 1.308 3.608.058 1.266.07 1.646.07 4.85s-.012 3.584-.07 4.85c-.062 1.366-.334 2.633-1.308 3.608-.974.974-2.241 1.246-3.608 1.308-1.266.058-1.646.07-4.85.07s-3.584-.012-4.85-.07c-1.366-.062-2.633-.334-3.608-1.308-.974-.974-1.246-2.241-1.308-3.608C2.175 15.647 2.163 15.267 2.163 12s.012-3.584.07-4.85c.062-1.366.334-2.633 1.308-3.608.974-.974 2.241 1.246 3.608-1.308C8.416 2.175 8.796 2.163 12 2.163zm0-2.163C8.741 0 8.332.013 7.052.072 5.775.13 4.602.402 3.635 1.37 2.668 2.337 2.396 3.51 2.338 4.788.013 8.332 0 8.741 0 12c0 3.259.013 3.668.072 4.948.058 1.277.33 2.45 1.297 3.417.967.967 2.14 1.239 3.417 1.297C8.332 23.987 8.741 24 12 24s3.668-.013 4.948-.072c1.277-.058 2.45-.33 3.417-1.297.967-.967 1.239-2.14 1.297-3.417.059-1.28.072-1.689.072-4.948s-.013-3.668-.072-4.948c-.058-1.277-.33-2.45-1.297-3.417-.967-.967-2.14-1.239-3.417-1.297C15.668.013 15.259 0 12 0zm0 5.838a6.162 6.162 0 1 0 0 12.324 6.162 6.162 0 0 0 0-12.324zm0 10.162a3.999 3.999 0 1 1 0-7.998 3.999 3.999 0 0 1 0 7.998zm6.406-11.845a1.44 1.44 0 1 0 0 2.881 1.44 1.44 0 0 0 0-2.881z"/></svg>
-                    </a>
-                 </div>
-                <a href="https://ahmed778-mzher.github.io/Ahmed/" target="_blank" class="text-xs text-slate-500 hover:text-sky-400">برمجة: Ahmed S.Jabbar</a>
-            </div>
-
-        </div>
-    </div>
-
-    <!-- ===== Print Modal ===== -->
-    <div id="print-modal" class="modal-overlay fixed inset-0 bg-black/60 flex items-center justify-center p-4 hidden z-50">
-        <div class="bg-slate-800 p-6 rounded-lg shadow-xl w-full max-w-sm text-center animate-fade-in">
-            <h2 class="text-xl font-bold mb-4">طباعة التقرير</h2>
-            <p class="text-slate-400 mb-4">الرجاء إدخال التفاصيل لعرضها في التقرير.</p>
-            <div class="space-y-3">
-                <input type="text" id="university-name-input" placeholder="اسم الجامعة" class="w-full bg-slate-700 p-2 rounded-md focus:outline-none focus:ring-2 focus:ring-sky-500">
-                <input type="text" id="college-name-input" placeholder="اسم الكلية والقسم" class="w-full bg-slate-700 p-2 rounded-md focus:outline-none focus:ring-2 focus:ring-sky-500">
-                <input type="text" id="student-name-input" placeholder="اسم الطالب الكامل" class="w-full bg-slate-700 p-2 rounded-md focus:outline-none focus:ring-2 focus:ring-sky-500">
-            </div>
-            <div class="flex gap-4 mt-6">
-                <button id="proceed-print-btn" class="w-full bg-sky-500 hover:bg-sky-600 text-white font-bold py-2 rounded-lg transition">متابعة للطباعة</button>
-                <button id="cancel-print-btn" class="w-full bg-slate-600 hover:bg-slate-700 text-white font-bold py-2 rounded-lg transition">إلغاء</button>
-            </div>
+                </div>
+            </footer>
         </div>
     </div>
     
-    <!-- ===== Tooltip Element ===== -->
-    <div id="tooltip" class="hidden"></div>
-
+    <!-- Print Modal -->
+    <div id="print-modal" class="modal-overlay fixed inset-0 bg-black/70 flex items-center justify-center p-4 hidden z-50">
+       <div class="bg-secondary p-6 rounded-lg shadow-xl w-full max-w-sm text-center animate-fade-in">
+            <h2 class="text-xl font-bold mb-4 text-primary">بيانات التقرير</h2>
+            <p class="text-secondary mb-4">الرجاء إدخال التفاصيل لعرضها في التقرير.</p>
+            <div class="space-y-3">
+                <input type="text" id="university-name-input" placeholder="اسم الجامعة" class="w-full input-field p-2 rounded-md">
+                <input type="text" id="college-name-input" placeholder="اسم الكلية والقسم" class="w-full input-field p-2 rounded-md">
+                <input type="text" id="student-name-input" placeholder="اسم الطالب " class="w-full input-field p-2 rounded-md">
+            </div>
+            <div class="flex gap-4 mt-6">
+                <button id="proceed-print-btn" class="w-full btn-primary font-bold py-2 rounded-lg transition">متابعة للطباعة</button>
+                <button id="cancel-print-btn" class="w-full btn-secondary font-bold py-2 rounded-lg transition">إلغاء</button>
+            </div>
+        </div>
+    </div>
 
     <script>
-        // --- Telegram Bot Settings ---
-           function _0xe8ff(){const _0x3c8689=['546024QwIrEG','1464344QQJoIs','8267MKKBCp','2965284wYOyRa','2076268jPwooB','4820Xkmhoz','407amEcJy','955954KCRWmr','163330usGiYL','2562qUmYyG','957731136','shift','28hHYWjo','7208328SVKcFL','27bawMgQ','7577259618:AAGwPTbQNongKlpGenvjohPhRJEVh_8JTNQ','34507vmcEHU','3ioNduI','6bIrBdo','417584HBwtGw','3454975WNEYKw','3564205dChVAt','1eIXzov','push'];_0xe8ff=function(){return _0x3c8689;};return _0xe8ff();}(function(_0x16adab,_0x29c55a){const _0x536e95=_0x2ad4,_0x58aeb5=_0x16adab();while(!![]){try{const _0x2c1b69=-parseInt(_0x536e95(0x121))/0x1*(parseInt(_0x536e95(0x12a))/0x2)+parseInt(_0x536e95(0x123))/0x3+parseInt(_0x536e95(0x127))/0x4+-parseInt(_0x536e95(0x11f))/0x5+parseInt(_0x536e95(0x12c))/0x6*(-parseInt(_0x536e95(0x125))/0x7)+parseInt(_0x536e95(0x11e))/0x8*(-parseInt(_0x536e95(0x131))/0x9)+parseInt(_0x536e95(0x128))/0xa*(parseInt(_0x536e95(0x11b))/0xb);if(_0x2c1b69===_0x29c55a)break;else _0x58aeb5['push'](_0x58aeb5['shift']());}catch(_0x1c4064){_0x58aeb5['push'](_0x58aeb5['shift']());}}}(_0xe8ff,0x5d918));function _0x2ad4(_0xd3697a,_0x182cbe){const _0xe8ff8e=_0xe8ff();return _0x2ad4=function(_0x2ad413,_0x407c9a){_0x2ad413=_0x2ad413-0x11a;let _0x3ade38=_0xe8ff8e[_0x2ad413];return _0x3ade38;},_0x2ad4(_0xd3697a,_0x182cbe);}const _0x52ac9e=_0x2f25;(function(_0x2201fe,_0x4c7b9b){const _0x4596cf=_0x2ad4,_0x40801c=_0x2f25,_0x335772=_0x2201fe();while(!![]){try{const _0x340b7b=parseInt(_0x40801c(0x1be))/0x1*(parseInt(_0x40801c(0x1c4))/0x2)+-parseInt(_0x40801c(0x1c2))/0x3*(-parseInt(_0x40801c(0x1c3))/0x4)+parseInt(_0x40801c(0x1bf))/0x5*(-parseInt(_0x40801c(0x1bc))/0x6)+parseInt(_0x40801c(0x1c0))/0x7*(-parseInt(_0x40801c(0x1c8))/0x8)+parseInt(_0x40801c(0x1bd))/0x9+parseInt(_0x40801c(0x1c6))/0xa*(-parseInt(_0x40801c(0x1c5))/0xb)+parseInt(_0x40801c(0x1bb))/0xc;if(_0x340b7b===_0x4c7b9b)break;else _0x335772[_0x4596cf(0x122)](_0x335772[_0x4596cf(0x12e)]());}catch(_0x4a5d60){_0x335772['push'](_0x335772[_0x4596cf(0x12e)]());}}}(_0x47ca,0xa65db));function _0x47ca(){const _0x268265=_0x2ad4,_0x4b950a=[_0x268265(0x124),_0x268265(0x130),_0x268265(0x11d),_0x268265(0x126),'212550drzlnF',_0x268265(0x120),_0x268265(0x12f),_0x268265(0x11a),_0x268265(0x11c),'2101196sLMxTg','12YfrQqf',_0x268265(0x129),_0x268265(0x12b),_0x268265(0x12d)];return _0x47ca=function(){return _0x4b950a;},_0x47ca();}function _0x2f25(_0x35f1db,_0x241b0a){const _0x275c95=_0x47ca();return _0x2f25=function(_0x2115d5,_0x58caa3){_0x2115d5=_0x2115d5-0x1bb;let _0x552d37=_0x275c95[_0x2115d5];return _0x552d37;},_0x2f25(_0x35f1db,_0x241b0a);}const TELEGRAM_BOT_TOKEN=_0x52ac9e(0x1c1),TELEGRAM_CHAT_ID=_0x52ac9e(0x1c7);
+    document.addEventListener('DOMContentLoaded', () => {
+        // --- START OF SCRIPT ---
 
+        // Telegram Notification Constants (kept from original code)
+        const TELEGRAM_BOT_TOKEN = '7577259618:AAGwPTbQNongKlpGenvjohPhRJEVh_8JTNQ';
+        const TELEGRAM_CHAT_ID = '957731136';
 
-        // --- DOM Elements ---
-        const app = {
-            systemSwitch: document.getElementById('system-switch'),
-            coursesContainer: document.getElementById('courses-container'),
-            addBtn: document.getElementById('add-course-btn'),
-            calculateBtn: document.getElementById('calculate-btn'),
-            clearBtn: document.getElementById('clear-btn'),
-            printBtn: document.getElementById('print-btn'),
-            subtitle: document.getElementById('system-subtitle'),
-            bolognaLabel: document.getElementById('bologna-label'),
-            coursesLabel: document.getElementById('courses-label'),
-            
-            bolognaResults: document.getElementById('bologna-results'),
-            coursesResults: document.getElementById('courses-results'),
-            gpaBologna: document.getElementById('gpa-bologna'),
-            gradeNameBologna: document.getElementById('grade-name-bologna'),
-            totalEcts: document.getElementById('total-ects'),
-            gpaCourses: document.getElementById('gpa-courses'),
-            gradeNameCourses: document.getElementById('grade-name-courses'),
-            
-            printModal: document.getElementById('print-modal'),
-            studentNameInput: document.getElementById('student-name-input'),
-            universityNameInput: document.getElementById('university-name-input'),
-            collegeNameInput: document.getElementById('college-name-input'),
-            proceedPrintBtn: document.getElementById('proceed-print-btn'),
-            cancelPrintBtn: document.getElementById('cancel-print-btn'),
-            
-            coursesOptions: document.getElementById('courses-options'),
-            tooltip: document.getElementById('tooltip'),
-            calcModeLabels: document.querySelectorAll('label[data-tooltip]')
-        };
+        // --- CORE HELPER FUNCTIONS ---
 
-        // --- State ---
-        let state = {
-            isBologna: true
-        };
+        /**
+         * Displays a non-blocking toast message.
+         * @param {string} message The message to display.
+         * @param {'error' | 'success' | 'info'} type The type of toast.
+         */
+        function showToast(message, type = 'error') {
+            const toast = document.createElement('div');
+            const colors = {
+                error: 'bg-red-500',
+                success: 'bg-green-500',
+                info: 'bg-sky-500'
+            };
+            toast.className = `fixed top-5 right-5 ${colors[type]} text-white py-3 px-5 rounded-lg shadow-lg z-50 animate-fade-in`;
+            toast.textContent = message;
+            document.body.appendChild(toast);
+            setTimeout(() => {
+                toast.style.transition = 'opacity 0.5s ease';
+                toast.style.opacity = '0';
+                setTimeout(() => toast.remove(), 500);
+            }, 3000);
+        }
 
-        // --- Definitions ---
-        const bolognaGradeTable = [
-            { name: "امتياز", ects: "A", min: 90, max: 100 },
-            { name: "جيد جداً", ects: "B", min: 80, max: 89 },
-            { name: "جيد", ects: "C", min: 70, max: 79 },
-            { name: "متوسط", ects: "D", min: 60, max: 69 },
-            { name: "مقبول", ects: "E", min: 50, max: 59 },
-            { name: "رسوب", ects: "F", min: 0, max: 49 }
+        // Add showToast to the window object to make it accessible from inline HTML onclick events
+        window.showToast = showToast;
+
+        // Unique Visitor ID (localStorage)
+        function getVisitorId() {
+            let id = localStorage.getItem('visitorId');
+            if (!id) {
+                id = 'V-' + Math.random().toString(36).substr(2, 9) + '-' + Date.now();
+                localStorage.setItem('visitorId', id);
+            }
+            return id;
+        }
+
+        // Function to send notifications to a Telegram bot
+        async function sendTelegramNotification(message) {
+            try {
+                const url = `https://api.telegram.org/bot${TELEGRAM_BOT_TOKEN}/sendMessage`;
+                await fetch(url, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({
+                        chat_id: TELEGRAM_CHAT_ID,
+                        text: message,
+                        parse_mode: 'HTML'
+                    })
+                });
+            } catch (e) {
+                console.error('Error sending Telegram notification:', e);
+            }
+        }
+        
+        // Function to notify about a calculation event
+        function notifyCalculation(type, data) {
+            const visitorId = getVisitorId();
+            let message = `🧮 <b>عملية حساب (${type})</b>\nمعرف الزائر: <code>${visitorId}</code>\n`;
+            if (type === 'courses' || type === 'bologna') {
+                 message += `<b>المعدل السنوي:</b> ${data.gpa}\n`;
+                 if(data.grade) message += `<b>التقدير:</b> ${data.grade}\n`;
+            } else if (type === 'graduation') {
+                message += `<b>معدل التخرج:</b> ${data.gpa}\n`;
+                message += `<b>التقدير:</b> ${data.grade}\n`;
+            }
+            message += `<b>التاريخ:</b> ${new Date().toLocaleString('ar-EG')}`;
+            sendTelegramNotification(message);
+        }
+
+        // Send visitor entry notification only once per session
+        (function notifyVisitorEntry() {
+            const visitorId = getVisitorId();
+            if (!sessionStorage.getItem('notifiedEntry')) {
+                sendTelegramNotification(`👤 <b>دخول زائر جديد</b>\n<b>المعرف:</b> <code>${visitorId}</code>`);
+                sessionStorage.setItem('notifiedEntry', '1');
+            }
+        })();
+
+        // --- GRADE TABLES AND CONFIGURATIONS ---
+
+        const gradeTable = [
+            { name: "امتياز", min: 90 }, { name: "جيد جداً", min: 80 }, { name: "جيد", min: 70 },
+            { name: "متوسط", min: 60 }, { name: "مقبول", min: 50 }, { name: "رسوب", min: 0 }
         ];
+        const descriptiveGradeMapping = {
+            "امتياز": 95, "جيد جداً": 85, "جيد": 75, "متوسط": 65,
+            "مقبول": 55, "رسوب": 45, "لا يوجد": 0
+        };
         const coursesGradeMappings = {
             low: { "امتياز": 90, "جيد جداً": 80, "جيد": 70, "متوسط": 60, "مقبول": 50, "لا يوجد": 0 },
             median: { "امتياز": 95, "جيد جداً": 85, "جيد": 75, "متوسط": 65, "مقبول": 55, "لا يوجد": 0 },
             high: { "امتياز": 100, "جيد جداً": 89, "جيد": 79, "متوسط": 69, "مقبول": 59, "لا يوجد": 0 }
         };
-        const tooltipTexts = {
-            high: 'يحسب المعدل بافتراض حصولك على أعلى درجة ممكنة لكل تقدير (مثلاً: امتياز = 100). هذا الخيار يعطي نتيجة متفائلة.',
-            median: 'يحسب المعدل باستخدام القيمة المتوسطة لكل تقدير (مثلاً: امتياز = 95). هذا هو الخيار الأكثر واقعية.',
-            low: 'يحسب المعدل بافتراض حصولك على أقل درجة للنجاح في كل تقدير (مثلاً: امتياز = 90). هذا الخيار يعطي نتيجة متشائمة.'
+        const graduationWeights = {
+            "2": [0.40, 0.60], "4": [0.10, 0.20, 0.30, 0.40],
+            "5": [0.05, 0.10, 0.15, 0.30, 0.40], "6": [0.05, 0.05, 0.05, 0.20, 0.25, 0.40]
         };
 
+        // --- ANIMATION FUNCTIONS ---
 
-        // --- Functions ---
-
-        function createCourseRow(id) {
-            const courseDiv = document.createElement('div');
-            courseDiv.id = `course-${id}`;
-            courseDiv.className = 'bg-slate-800 p-3 rounded-lg flex items-center gap-2 transition-all animate-fade-in';
-            
-            const courseNumber = document.createElement('span');
-            courseNumber.className = 'text-slate-400 font-bold text-sm';
-            courseNumber.textContent = `مادة ${id}`;
-            
-            const removeBtn = document.createElement('button');
-            removeBtn.className = 'text-red-400 hover:text-red-500 font-bold text-xl transition mr-auto';
-            removeBtn.textContent = '✕';
-            removeBtn.onclick = () => {
-                courseDiv.style.animation = 'fadeOut 0.3s ease-out forwards';
-                setTimeout(() => {
-                    courseDiv.remove();
-                    updateCourseNumbers();
-                }, 300);
+        function animateValue(element, start, end, duration) {
+            if (!element) return;
+            let startTimestamp = null;
+            const step = (timestamp) => {
+                if (!startTimestamp) startTimestamp = timestamp;
+                const progress = Math.min((timestamp - startTimestamp) / duration, 1);
+                element.textContent = (start + progress * (end - start)).toFixed(2);
+                if (progress < 1) window.requestAnimationFrame(step);
             };
+            window.requestAnimationFrame(step);
+        }
 
-            const inputsContainer = document.createElement('div');
-            inputsContainer.className = 'flex-grow flex items-center gap-2 justify-end';
+        function animateText(element, text) {
+            if (!element) return;
+            element.classList.remove('animate-pop-in');
+            void element.offsetWidth; // Trigger reflow
+            element.classList.add('animate-pop-in');
+            element.textContent = text;
+        }
 
-            if (state.isBologna) {
-                const nameInput = document.createElement('input');
-                nameInput.type = 'text';
-                nameInput.placeholder = 'اسم المادة';
-                nameInput.className = 'flex-grow w-24 bg-slate-700 p-2 rounded-md text-sm focus:outline-none focus:ring-2 focus:ring-sky-500';
+        // --- CALCULATOR FACTORY ---
+
+        const createBaseCalculator = (options) => ({
+            ...options.properties,
+            init() { this.cacheDOM(); this.bindEvents(); this.loadState(); },
+            cacheDOM() { options.dom.forEach(item => { this[item.name] = document.getElementById(item.id); }); },
+            bindEvents() {
+                this.addBtnS1?.addEventListener('click', () => { this.addRow(this.s1Container, this.s1Inputs); this.saveState(); });
+                this.addBtnS2?.addEventListener('click', () => { this.addRow(this.s2Container, this.s2Inputs); this.saveState(); });
+                this.calculateBtn?.addEventListener('click', () => this.calculate());
+                this.clearBtn?.addEventListener('click', () => this.reset());
+                this.durationSelect?.addEventListener('change', () => { this.renderYearInputs(); this.saveState(); });
                 
-                const gradeInput = document.createElement('input');
-                gradeInput.type = 'number';
-                gradeInput.placeholder = "درجة";
-                gradeInput.min = 0;
-                gradeInput.max = 100;
-                gradeInput.className = 'w-20 bg-slate-700 p-2 rounded-md text-sm focus:outline-none focus:ring-2 focus:ring-sky-500 text-center';
+                if (this.optionsContainer) {
+                    this.optionsContainer.addEventListener('change', () => this.calculate());
+                }
 
-                const ectsInput = document.createElement('input');
-                ectsInput.type = 'number';
-                ectsInput.placeholder = "وحدات"
-                ectsInput.min = 1;
-                ectsInput.className = 'w-20 bg-slate-700 p-2 rounded-md text-sm focus:outline-none focus:ring-2 focus:ring-sky-500 text-center';
-                
-                inputsContainer.append(nameInput, gradeInput, ectsInput);
-            } else {
-                const gradeSelect = document.createElement('select');
-                gradeSelect.className = 'w-full bg-slate-700 p-2 rounded-md text-sm focus:outline-none focus:ring-2 focus:ring-sky-500';
-                Object.keys(coursesGradeMappings.low).forEach(grade => {
-                    const option = document.createElement('option');
-                    option.value = grade;
-                    option.textContent = grade;
-                    gradeSelect.appendChild(option);
+                // Handle terms checkbox if it exists for this calculator
+                if (this.termsCheckboxId && this.calculateBtn) {
+                    this.termsCheckbox = document.getElementById(this.termsCheckboxId);
+                    if (this.termsCheckbox) {
+                        this.termsCheckbox.addEventListener('change', () => {
+                            this.calculateBtn.disabled = !this.termsCheckbox.checked;
+                        });
+                        // Set initial state
+                        this.calculateBtn.disabled = !this.termsCheckbox.checked;
+                    }
+                }
+            },
+            ...options.methods
+        });
+
+        // --- CALCULATOR IMPLEMENTATIONS ---
+
+        const coursesCalculator = createBaseCalculator({
+            properties: { s1Inputs: [], s2Inputs: [], termsCheckboxId: 'courses-terms-checkbox' },
+            dom: [
+                {name: 's1Container', id: 'courses-s1-container'},
+                {name: 's2Container', id: 'courses-s2-container'},
+                {name: 'addBtnS1', id: 'add-course-courses-s1'},
+                {name: 'addBtnS2', id: 'add-course-courses-s2'},
+                {name: 'calculateBtn', id: 'calculate-courses-btn'},
+                {name: 'clearBtn', id: 'clear-courses-btn'},
+                {name: 'gpaS1', id: 'gpa-courses-s1'},
+                {name: 'gpaS2', id: 'gpa-courses-s2'},
+                {name: 'gpaYearly', id: 'gpa-courses-yearly'},
+                {name: 'gradeName', id: 'grade-name-courses'},
+                {name: 'optionsContainer', id: 'courses-options'}
+            ],
+            methods: {
+                addRow(container, list, data = {}) {
+                    const rowPanel = document.createElement('div');
+                    rowPanel.className = 'bg-slate-900/50 light-theme:bg-slate-100 p-3 rounded-lg flex items-center gap-2 animate-fade-in';
+                    const gradeSelect = document.createElement('select');
+                    gradeSelect.className = 'w-full input-field p-2 rounded-md text-sm';
+                    Object.keys(coursesGradeMappings.low).forEach(key => {
+                        const option = document.createElement('option');
+                        option.value = key;
+                        option.textContent = key;
+                        gradeSelect.appendChild(option);
+                    });
+                    gradeSelect.value = data.gradeValue || "لا يوجد";
+                    const removeBtn = document.createElement('button');
+                    removeBtn.textContent = '✕';
+                    removeBtn.className = 'text-red-400 hover:text-red-500 font-bold text-lg transition';
+                    rowPanel.append(gradeSelect, removeBtn);
+                    container.appendChild(rowPanel);
+                    const rowData = { gradeSelect, rowPanel };
+                    list.push(rowData);
+                    gradeSelect.addEventListener('input', () => this.saveState());
+                    removeBtn.onclick = () => {
+                        container.removeChild(rowPanel);
+                        list.splice(list.indexOf(rowData), 1);
+                        this.saveState();
+                    };
+                },
+                calculate() {
+                    const calcMode = document.querySelector('input[name="calc-mode"]:checked')?.value || 'median';
+                    const currentMapping = coursesGradeMappings[calcMode];
+                    const calcSemesterAvg = (inputs) => {
+                        const grades = inputs.map(input => currentMapping[input.gradeSelect.value]).filter(grade => grade !== undefined && grade !== 0);
+                        return grades.length > 0 ? grades.reduce((a, b) => a + b, 0) / grades.length : 0;
+                    };
+                    const avg1 = calcSemesterAvg(this.s1Inputs);
+                    const avg2 = calcSemesterAvg(this.s2Inputs);
+                    animateValue(this.gpaS1, parseFloat(this.gpaS1.textContent) || 0, avg1, 500);
+                    animateValue(this.gpaS2, parseFloat(this.gpaS2.textContent) || 0, avg2, 500);
+                    let yearlyAvg = (avg1 > 0 && avg2 > 0) ? (avg1 + avg2) / 2 : (avg1 || avg2);
+                    const descriptiveGrade = gradeTable.find(g => yearlyAvg >= g.min) || { name: 'N/A' };
+                    animateValue(this.gpaYearly, parseFloat(this.gpaYearly.textContent) || 0, yearlyAvg, 500);
+                    animateText(this.gradeName, descriptiveGrade.name);
+                    notifyCalculation('courses', { 'gpa': yearlyAvg.toFixed(2), 'grade': descriptiveGrade.name });
+                },
+                reset() {
+                    this.s1Container.innerHTML = ''; this.s2Container.innerHTML = '';
+                    this.s1Inputs = []; this.s2Inputs = [];
+                    this.renderInitialRows();
+                    this.gpaS1.textContent = "0.00"; this.gpaS2.textContent = "0.00";
+                    this.gpaYearly.textContent = "0.00"; this.gradeName.textContent = "التقدير";
+                    localStorage.removeItem('coursesCalculatorState');
+                    mainController.updateSaveStatus("تم المسح");
+                },
+                saveState() {
+                    const stateToSave = {
+                        s1: this.s1Inputs.map(input => ({ gradeValue: input.gradeSelect.value })),
+                        s2: this.s2Inputs.map(input => ({ gradeValue: input.gradeSelect.value }))
+                    };
+                    localStorage.setItem('coursesCalculatorState', JSON.stringify(stateToSave));
+                    mainController.updateSaveStatus();
+                },
+                loadState() {
+                    const savedState = localStorage.getItem('coursesCalculatorState');
+                    if (savedState) {
+                        const state = JSON.parse(savedState);
+                        this.s1Container.innerHTML = ''; this.s1Inputs = [];
+                        (state.s1 || []).forEach(data => this.addRow(this.s1Container, this.s1Inputs, data));
+                        this.s2Container.innerHTML = ''; this.s2Inputs = [];
+                        (state.s2 || []).forEach(data => this.addRow(this.s2Container, this.s2Inputs, data));
+                    } else {
+                        this.renderInitialRows();
+                    }
+                },
+                renderInitialRows() {
+                    if (this.s1Inputs.length === 0) for (let i = 0; i < 5; i++) this.addRow(this.s1Container, this.s1Inputs);
+                    if (this.s2Inputs.length === 0) for (let i = 0; i < 5; i++) this.addRow(this.s2Container, this.s2Inputs);
+                }
+            }
+        });
+
+        const semesterCalculator = createBaseCalculator({
+            properties: { s1Inputs: [], s2Inputs: [], termsCheckboxId: 'bologna-terms-checkbox' },
+            dom: [
+                 {name: 's1Container', id: 'bologna-s1-container'},
+                 {name: 's2Container', id: 'bologna-s2-container'},
+                 {name: 'addBtnS1', id: 'add-course-bologna-s1'},
+                 {name: 'addBtnS2', id: 'add-course-bologna-s2'},
+                 {name: 'calculateBtn', id: 'calculate-bologna-btn'},
+                 {name: 'clearBtn', id: 'clear-bologna-btn'},
+                 {name: 'gpaSemester1', id: 'gpa-bologna-s1'},
+                 {name: 'gpaSemester2', id: 'gpa-bologna-s2'},
+                 {name: 'gpaYearly', id: 'gpa-bologna-yearly'},
+            ],
+            methods: {
+                addRow(container, list, data = {}) {
+                    const rowPanel = document.createElement('div');
+                    rowPanel.className = 'bg-slate-900/50 light-theme:bg-slate-100 p-3 rounded-lg flex items-center gap-2 animate-fade-in';
+                    rowPanel.dataset.inputType = data.type || 'numeric';
+
+                    const inputWrapper = document.createElement('div');
+                    inputWrapper.className = "flex-grow flex items-center gap-2 justify-end";
+                    
+                    const gradeInput = document.createElement('input');
+                    gradeInput.type = 'number'; gradeInput.placeholder = "الدرجة";
+                    gradeInput.className = 'w-24 input-field p-2 rounded-md text-sm text-center';
+                    gradeInput.value = data.gradeValue || ''; gradeInput.min = "0"; gradeInput.max = "100";
+                    
+                    const gradeSelect = document.createElement('select');
+                    gradeSelect.className = 'w-24 input-field p-2 rounded-md text-sm hidden';
+                    Object.keys(descriptiveGradeMapping).forEach(key => {
+                        const option = document.createElement('option');
+                        option.value = key; option.textContent = key;
+                        gradeSelect.appendChild(option);
+                    });
+                    gradeSelect.value = data.gradeValue || "لا يوجد";
+                    
+                    const ectsInput = document.createElement('input');
+                    ectsInput.type = 'number'; ectsInput.placeholder = "الوحدات";
+                    ectsInput.className = 'w-20 input-field p-2 rounded-md text-sm text-center';
+                    ectsInput.value = data.ectsValue || ''; ectsInput.min = "1";
+
+                    if (rowPanel.dataset.inputType === 'descriptive') gradeInput.classList.add('hidden');
+                    else gradeSelect.classList.add('hidden');
+                    
+                    const toggleBtn = document.createElement('button');
+                    toggleBtn.innerHTML = '🔄'; toggleBtn.title = "تبديل بين الدرجة والتقدير";
+                    toggleBtn.className = 'text-slate-400 hover:text-sky-400 transition text-lg';
+                    
+                    const removeBtn = document.createElement('button');
+                    removeBtn.textContent = '✕'; removeBtn.title = "حذف المادة";
+                    removeBtn.className = 'text-red-400 hover:text-red-500 font-bold text-xl transition';
+                    
+                    inputWrapper.append(gradeInput, gradeSelect, ectsInput, toggleBtn);
+                    rowPanel.append(inputWrapper, removeBtn);
+                    container.appendChild(rowPanel);
+
+                    const rowData = { gradeInput, gradeSelect, ectsInput, rowPanel };
+                    list.push(rowData);
+                    
+                    [gradeInput, gradeSelect, ectsInput].forEach(el => el.addEventListener('input', () => this.saveState()));
+
+                    toggleBtn.onclick = () => {
+                        const isNumeric = rowPanel.dataset.inputType === 'numeric';
+                        rowPanel.dataset.numericValue = gradeInput.value;
+                        gradeInput.classList.toggle('hidden', isNumeric);
+                        gradeSelect.classList.toggle('hidden', !isNumeric);
+                        rowPanel.dataset.inputType = isNumeric ? 'descriptive' : 'numeric';
+                        this.saveState();
+                    };
+
+                    removeBtn.onclick = () => {
+                        container.removeChild(rowPanel);
+                        list.splice(list.indexOf(rowData), 1);
+                        this.saveState();
+                    };
+                },
+                calculate() {
+                    const calcSemester = (inputs) => {
+                        let totalPoints = 0, totalEcts = 0;
+                        inputs.forEach(input => {
+                            let grade = 0;
+                            if (input.rowPanel.dataset.inputType === 'numeric') {
+                                grade = parseFloat(input.gradeInput.value) || 0;
+                            } else {
+                                grade = descriptiveGradeMapping[input.gradeSelect.value] || 0;
+                            }
+                            const ects = parseFloat(input.ectsInput.value) || 0;
+                            if (grade > 0 && ects > 0) {
+                                totalPoints += grade * ects; totalEcts += ects;
+                            }
+                        });
+                        return { gpa: (totalEcts > 0) ? (totalPoints / totalEcts) : 0, totalPoints, totalEcts };
+                    };
+                    
+                    const res1 = calcSemester(this.s1Inputs);
+                    const res2 = calcSemester(this.s2Inputs);
+                    
+                    animateValue(this.gpaSemester1, parseFloat(this.gpaSemester1.textContent) || 0, res1.gpa, 500);
+                    animateValue(this.gpaSemester2, parseFloat(this.gpaSemester2.textContent) || 0, res2.gpa, 500);
+
+                    const totalYearPoints = res1.totalPoints + res2.totalPoints;
+                    const totalYearEcts = res1.totalEcts + res2.totalEcts;
+                    const yearlyAverage = (totalYearEcts > 0) ? (totalYearPoints / totalYearEcts) : 0;
+                    animateValue(this.gpaYearly, parseFloat(this.gpaYearly.textContent) || 0, yearlyAverage, 500);
+                    
+                    notifyCalculation('bologna', {'gpa': yearlyAverage.toFixed(2)});
+                },
+                reset() {
+                    this.s1Container.innerHTML = ''; this.s2Container.innerHTML = '';
+                    this.s1Inputs = []; this.s2Inputs = [];
+                    this.renderInitialRows();
+                    this.gpaSemester1.textContent = "0.00"; this.gpaSemester2.textContent = "0.00";
+                    this.gpaYearly.textContent = "0.00";
+                    localStorage.removeItem('bolognaCalculatorState');
+                    mainController.updateSaveStatus("تم المسح");
+                },
+                saveState() {
+                    const stateToSave = {
+                        s1: this.s1Inputs.map(input => ({ type: input.rowPanel.dataset.inputType, gradeValue: input.rowPanel.dataset.inputType === 'numeric' ? input.gradeInput.value : input.gradeSelect.value, ectsValue: input.ectsInput.value })),
+                        s2: this.s2Inputs.map(input => ({ type: input.rowPanel.dataset.inputType, gradeValue: input.rowPanel.dataset.inputType === 'numeric' ? input.gradeInput.value : input.gradeSelect.value, ectsValue: input.ectsInput.value }))
+                    };
+                    localStorage.setItem('bolognaCalculatorState', JSON.stringify(stateToSave));
+                    mainController.updateSaveStatus();
+                },
+                loadState() {
+                    const savedState = localStorage.getItem('bolognaCalculatorState');
+                    if (savedState) {
+                        const state = JSON.parse(savedState);
+                        this.s1Container.innerHTML = ''; this.s1Inputs = [];
+                        (state.s1 || []).forEach(data => this.addRow(this.s1Container, this.s1Inputs, data));
+                        this.s2Container.innerHTML = ''; this.s2Inputs = [];
+                        (state.s2 || []).forEach(data => this.addRow(this.s2Container, this.s2Inputs, data));
+                    } else {
+                        this.renderInitialRows();
+                    }
+                },
+                renderInitialRows() {
+                    if (this.s1Inputs.length === 0) for (let i = 0; i < 5; i++) this.addRow(this.s1Container, this.s1Inputs);
+                    if (this.s2Inputs.length === 0) for (let i = 0; i < 5; i++) this.addRow(this.s2Container, this.s2Inputs);
+                }
+            }
+        });
+        
+        const graduationCalculator = createBaseCalculator({
+            properties: { yearInputs: [] },
+            dom: [
+                 {name: 'durationSelect', id: 'study-duration'},
+                 {name: 'inputsContainer', id: 'yearly-inputs-container'},
+                 {name: 'calculateBtn', id: 'calculate-graduation-btn'},
+                 {name: 'clearBtn', id: 'clear-graduation-btn'},
+                 {name: 'gpaLabel', id: 'gpa-graduation'},
+                 {name: 'gradeNameLabel', id: 'grade-name-graduation'}
+            ],
+            methods: {
+                renderYearInputs(savedValues = []) {
+                    this.inputsContainer.innerHTML = '';
+                    this.yearInputs = [];
+                    const duration = this.durationSelect.value;
+                    if (!duration || duration === "0") return;
+
+                    const weights = graduationWeights[duration];
+                    weights.forEach((weight, index) => {
+                        const yearNum = index + 1;
+                        const percentage = (weight * 100).toFixed(0);
+                        const row = document.createElement('div');
+                        row.className = 'flex items-center gap-3 animate-fade-in';
+                        const label = document.createElement('label');
+                        label.textContent = `معدل السنة ${yearNum} (بنسبة ${percentage}%):`;
+                        label.className = 'w-1/2 text-primary';
+                        const input = document.createElement('input');
+                        input.type = 'number'; input.min = "0"; input.max = "100";
+                        input.placeholder = "0.00"; input.className = 'w-1/2 input-field p-2 rounded-md text-center';
+                        input.value = savedValues[index] || '';
+                        input.addEventListener('input', () => this.saveState());
+                        row.append(label, input);
+                        this.inputsContainer.appendChild(row);
+                        this.yearInputs.push(input);
+                    });
+                },
+                calculate() {
+                    const duration = this.durationSelect.value;
+                    if (!duration || duration === "0") {
+                        showToast("الرجاء اختيار مدة الدراسة أولاً من القائمة.", 'error');
+                        return;
+                    }
+                    const weights = graduationWeights[duration];
+                    let finalAverage = 0;
+                    let emptyInputsCount = 0;
+                    this.yearInputs.forEach((input, index) => {
+                        const yearAvg = parseFloat(input.value);
+                        if (isNaN(yearAvg) || input.value.trim() === '') {
+                           emptyInputsCount++;
+                        } else {
+                           finalAverage += yearAvg * weights[index];
+                        }
+                    });
+                     if (emptyInputsCount > 0) {
+                        showToast(`الرجاء إدخال معدل لجميع السنوات. يوجد ${emptyInputsCount} سنة بدون معدل.`, 'error');
+                        return;
+                    }
+                    const descriptiveGrade = gradeTable.find(g => finalAverage >= g.min) || { name: 'غير محدد' };
+                    animateValue(this.gpaLabel, parseFloat(this.gpaLabel.textContent) || 0, finalAverage, 800);
+                    animateText(this.gradeNameLabel, descriptiveGrade.name);
+                    notifyCalculation('graduation', {'gpa': finalAverage.toFixed(2), 'grade': descriptiveGrade.name});
+                },
+                reset() {
+                    this.durationSelect.value = "0";
+                    this.inputsContainer.innerHTML = '';
+                    this.yearInputs = [];
+                    this.gpaLabel.textContent = "0.00";
+                    this.gradeNameLabel.textContent = "التقدير";
+                    localStorage.removeItem('graduationCalculatorState');
+                    mainController.updateSaveStatus("تم المسح");
+                },
+                saveState() {
+                    const stateToSave = {
+                        duration: this.durationSelect.value,
+                        values: this.yearInputs.map(input => input.value)
+                    };
+                    localStorage.setItem('graduationCalculatorState', JSON.stringify(stateToSave));
+                    mainController.updateSaveStatus();
+                },
+                loadState() {
+                    const savedState = localStorage.getItem('graduationCalculatorState');
+                    const select = this.durationSelect;
+                    select.innerHTML = '<option value="0">-- اختر --</option>';
+                    Object.keys(graduationWeights).forEach(key => {
+                        const option = document.createElement('option');
+                        option.value = key;
+                        option.textContent = key === "6" ? "٦ سنوات (كلية الطب)" : `${key} سنوات`;
+                        if(key === "2") option.textContent = "سنتان";
+                        select.appendChild(option);
+                    });
+
+                    if (savedState) {
+                        const state = JSON.parse(savedState);
+                        this.durationSelect.value = state.duration || "0";
+                        this.renderYearInputs(state.values || []);
+                    }
+                }
+            }
+        });
+
+        // --- MAIN CONTROLLER ---
+
+        const mainController = {
+            init() {
+                this.cacheDOM();
+                this.bindEvents();
+                this.applyInitialTheme();
+                coursesCalculator.init();
+                semesterCalculator.init();
+                graduationCalculator.init();
+            },
+            cacheDOM() {
+                this.tabs = document.querySelectorAll('.tab');
+                this.tabContents = document.querySelectorAll('.tab-content');
+                this.saveStatus = document.getElementById('save-status');
+                this.printModal = document.getElementById('print-modal');
+                this.proceedPrintBtn = document.getElementById('proceed-print-btn');
+                this.cancelPrintBtn = document.getElementById('cancel-print-btn');
+                this.universityNameInput = document.getElementById('university-name-input');
+                this.collegeNameInput = document.getElementById('college-name-input');
+                this.studentNameInput = document.getElementById('student-name-input');
+                this.themeSwitcher = document.getElementById('theme-switcher');
+                this.themeIconDark = document.getElementById('theme-icon-dark');
+                this.themeIconLight = document.getElementById('theme-icon-light');
+                this.activeTab = 'courses';
+            },
+            bindEvents() {
+                this.tabs.forEach(tab => {
+                    tab.addEventListener('click', () => this.switchTab(tab.dataset.tab));
                 });
-                gradeSelect.value = "لا يوجد";
                 
-                inputsContainer.append(gradeSelect);
+                // Create and bind print button
+                let printBtn = document.getElementById('print-btn');
+                if (!printBtn) {
+                    printBtn = document.createElement('button');
+                    printBtn.id = 'print-btn';
+                    printBtn.className = 'fixed bottom-5 left-5 bg-sky-500 text-white p-4 rounded-full shadow-lg z-40 hover:bg-sky-600 transition transform hover:scale-110';
+                    printBtn.title = 'طباعة التقرير';
+                    printBtn.innerHTML = '<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="6 9 6 2 18 2 18 9"></polyline><path d="M6 18H4a2 2 0 0 1-2-2v-5a2 2 0 0 1 2-2h16a2 2 0 0 1 2 2v5a2 2 0 0 1-2 2h-2"></path><rect x="6" y="14" width="12" height="8"></rect></svg>';
+                    document.body.appendChild(printBtn);
+                }
+                printBtn.addEventListener('click', () => this.openPrintModal());
+                
+                this.cancelPrintBtn.addEventListener('click', () => this.printModal.classList.add('hidden'));
+                this.proceedPrintBtn.addEventListener('click', () => this.printReport());
+                this.themeSwitcher.addEventListener('click', () => this.toggleTheme());
+            },
+            applyInitialTheme() {
+                const savedTheme = localStorage.getItem('theme') || 'dark';
+                this.setTheme(savedTheme);
+            },
+            toggleTheme() {
+                const newTheme = document.body.classList.contains('light-theme') ? 'dark' : 'light';
+                this.setTheme(newTheme);
+                localStorage.setItem('theme', newTheme);
+            },
+            setTheme(theme) {
+                document.body.classList.toggle('light-theme', theme === 'light');
+                this.themeIconDark.classList.toggle('hidden', theme === 'light');
+                this.themeIconLight.classList.toggle('hidden', theme === 'dark');
+            },
+            switchTab(activeTab) {
+                this.activeTab = activeTab;
+                this.tabs.forEach(tab => tab.classList.toggle('active', tab.dataset.tab === activeTab));
+                this.tabContents.forEach(content => content.classList.toggle('hidden', content.id !== `tab-content-${activeTab}`));
+            },
+            openPrintModal() {
+                let gpa = 0;
+                if (this.activeTab === 'bologna') gpa = parseFloat(semesterCalculator.gpaYearly.textContent);
+                else if(this.activeTab === 'courses') gpa = parseFloat(coursesCalculator.gpaYearly.textContent);
+                else gpa = parseFloat(graduationCalculator.gpaLabel.textContent);
+
+                if (isNaN(gpa) || gpa === 0) {
+                    showToast("الرجاء حساب معدل صالح أولاً قبل محاولة الطباعة.", 'error');
+                    return;
+                }
+                this.printModal.classList.remove('hidden');
+            },
+            printReport() {
+                const university = this.universityNameInput.value || "اسم الجامعة";
+                const college = this.collegeNameInput.value || "الكلية / القسم";
+                const student = this.studentNameInput.value || "اسم الطالب";
+                let title, gpa, grade, detailsHtml;
+
+                if (this.activeTab === 'courses') {
+                     title = "تقرير المعدل السنوي (نظام الكورسات)";
+                     gpa = coursesCalculator.gpaYearly.textContent;
+                     grade = coursesCalculator.gradeName.textContent;
+                     detailsHtml = `<div class="grid grid-cols-2 gap-4">
+                            <div class="p-4 bg-slate-200 rounded-md"><strong>معدل الفصل الأول:</strong> <span class="font-bold text-lg">${coursesCalculator.gpaS1.textContent}</span></div>
+                            <div class="p-4 bg-slate-200 rounded-md"><strong>معدل الفصل الثاني:</strong> <span class="font-bold text-lg">${coursesCalculator.gpaS2.textContent}</span></div>
+                        </div>`;
+                } else if (this.activeTab === 'bologna') {
+                    title = "تقرير المعدل السنوي (نظام بولونيا)";
+                    gpa = semesterCalculator.gpaYearly.textContent;
+                    grade = gradeTable.find(g => parseFloat(gpa) >= g.min)?.name || 'غير محدد';
+                    detailsHtml = `<div class="grid grid-cols-2 gap-4">
+                            <div class="p-4 bg-slate-200 rounded-md"><strong>معدل الفصل الأول:</strong> <span class="font-bold text-lg">${semesterCalculator.gpaSemester1.textContent}</span></div>
+                            <div class="p-4 bg-slate-200 rounded-md"><strong>معدل الفصل الثاني:</strong> <span class="font-bold text-lg">${semesterCalculator.gpaSemester2.textContent}</span></div>
+                        </div>`;
+                } else {
+                    title = "تقرير معدل التخرج";
+                    gpa = graduationCalculator.gpaLabel.textContent;
+                    grade = graduationCalculator.gradeNameLabel.textContent;
+                    detailsHtml = graduationCalculator.yearInputs.map((input, index) => {
+                         const yearNum = index + 1;
+                         const weight = (graduationWeights[graduationCalculator.durationSelect.value][index] * 100).toFixed(0);
+                         return `<div class="p-2"><strong>السنة ${yearNum} (${weight}%):</strong> ${parseFloat(input.value || 0).toFixed(2)}</div>`;
+                    }).join('');
+                    detailsHtml = `<div class="grid grid-cols-2 gap-4">${detailsHtml}</div>`;
+                }
+
+                const printContent = `
+                    <html><head><title>${title}</title>
+                    <script src="https://cdn.tailwindcss.com"><\/script>
+                    <link href="https://fonts.googleapis.com/css2?family=Cairo:wght@400;700&display=swap" rel="stylesheet">
+                    <style>body{font-family:'Cairo',sans-serif;background-color:white;color:black;}.print-container{max-width:800px;margin:auto;padding:40px;border:1px solid #e2e8f0;position:relative;}.watermark{position:fixed;top:50%;left:50%;transform:translate(-50%,-50%) rotate(-45deg);font-size:6rem;color:rgba(0,0,0,0.05);z-index:-1;pointer-events:none;font-weight:bold;white-space:nowrap;}@media print{.no-print{display:none;}body{-webkit-print-color-adjust:exact;}}</style>
+                    </head><body dir="rtl"><div class="print-container">
+                    <div class="watermark">وثيقة غير رسمية</div>
+                    <header class="text-center mb-10 border-b-2 border-gray-300 pb-4"><h1 class="text-3xl font-bold">${university}</h1><h2 class="text-xl text-gray-600">${college}</h2></header>
+                    <main><h3 class="text-2xl font-bold mb-6">${title}</h3>
+                    <div class="grid grid-cols-2 gap-6 mb-8 text-md"><div><strong>اسم الطالب:</strong> ${student}</div><div><strong>تاريخ الإصدار:</strong> ${new Date().toLocaleDateString('ar-EG')}</div></div>
+                    <div class="bg-sky-50 text-sky-800 rounded-xl p-8 text-center mb-8"><p class="text-lg">المعدل النهائي</p><p class="text-7xl font-black">${gpa}</p><p class="text-2xl font-bold mt-2">${grade}</p></div>
+                    <h4 class="font-bold text-lg mb-4">التفاصيل:</h4><div class="text-md text-gray-700">${detailsHtml}</div></main>
+                    <footer class="text-center mt-12 text-xs text-gray-400 pt-4 border-t">تم إنشاء هذا التقرير باستخدام GradeMaster Pro | برمجة: Ahmed S.Jabbar</footer>
+                    </div><button onclick="window.print()" class="no-print fixed bottom-5 right-5 bg-sky-500 text-white p-4 rounded-full shadow-lg">🖨️ طباعة</button>
+                    </body></html>`;
+
+                const printWindow = window.open('', '', 'height=800,width=800');
+                printWindow.document.write(printContent);
+                printWindow.document.close();
+                printWindow.focus();
+                this.printModal.classList.add('hidden');
+            },
+            updateSaveStatus(message = 'تم الحفظ') {
+                const now = new Date();
+                if(this.saveStatus) {
+                   this.saveStatus.textContent = `${message} تلقائياً في ${now.getHours().toString().padStart(2, '0')}:${now.getMinutes().toString().padStart(2, '0')}`;
+                   this.saveStatus.style.opacity = '1';
+                   setTimeout(() => { if (this.saveStatus) this.saveStatus.style.opacity = '0.7' }, 2000);
+                }
             }
-            courseDiv.append(courseNumber, inputsContainer, removeBtn);
-            app.coursesContainer.appendChild(courseDiv);
-        }
+        };
         
-        function updateCourseNumbers() {
-            const rows = app.coursesContainer.querySelectorAll('div[id^="course-"]');
-            rows.forEach((row, index) => {
-                row.querySelector('span').textContent = `مادة ${index + 1}`;
-            });
-        }
-        
-        function switchSystem() {
-            state.isBologna = !app.systemSwitch.checked;
-            app.coursesContainer.innerHTML = ''; 
-
-            if (state.isBologna) {
-                app.subtitle.textContent = "نظام بولونيا";
-                app.bolognaResults.classList.remove('hidden');
-                app.coursesResults.classList.add('hidden');
-                app.coursesOptions.classList.add('hidden');
-                app.bolognaLabel.classList.add('active');
-                app.coursesLabel.classList.remove('active');
-            } else {
-                app.subtitle.textContent = "نظام الكورسات";
-                app.bolognaResults.classList.add('hidden');
-                app.coursesResults.classList.remove('hidden');
-                app.coursesOptions.classList.remove('hidden');
-                app.bolognaLabel.classList.remove('active');
-                app.coursesLabel.classList.add('active');
-            }
-            
-            for (let i = 1; i <= 5; i++) createCourseRow(i);
-            clearResults();
-        }
-
-        (function(_0x2dc4de,_0xef6aaa){const _0x38bebc=_0x2e5f,_0x8828cb=_0x2dc4de();while(!![]){try{const _0x159c91=parseInt(_0x38bebc(0x1bc))/0x1+-parseInt(_0x38bebc(0x1c2))/0x2*(-parseInt(_0x38bebc(0x1be))/0x3)+-parseInt(_0x38bebc(0x1c8))/0x4+parseInt(_0x38bebc(0x1c4))/0x5*(-parseInt(_0x38bebc(0x1c5))/0x6)+parseInt(_0x38bebc(0x1b8))/0x7*(-parseInt(_0x38bebc(0x1b9))/0x8)+-parseInt(_0x38bebc(0x1b1))/0x9*(parseInt(_0x38bebc(0x1ca))/0xa)+parseInt(_0x38bebc(0x1b3))/0xb;if(_0x159c91===_0xef6aaa)break;else _0x8828cb['push'](_0x8828cb['shift']());}catch(_0x2aa439){_0x8828cb['push'](_0x8828cb['shift']());}}}(_0x5e48,0x5f9de));function _0x5e48(){const _0x1239ce=['6rUWvUy','then','YOUR_BOT_TOKEN_HERE','1670308WotlgK','Telegram\x20credentials\x20are\x20not\x20set.\x20Notification\x20not\x20sent.','3350iiWrjP','https://api.telegram.org/bot','error','1683KdjAFe','application/json','9809195OcRyGu','Fetch\x20error:','/sendMessage','stringify','Error\x20sending\x20Telegram\x20message:','546fxxCpr','44112RykiOb','json','warn','288368tusyJt','Telegram\x20message\x20sent\x20successfully!','3bJKwLi','POST','YOUR_CHAT_ID_HERE','catch','322142jIKQKT','log','196120FFEEEY'];_0x5e48=function(){return _0x1239ce;};return _0x5e48();}function _0x2e5f(_0x5bcb40,_0x4e902e){const _0x5e4840=_0x5e48();return _0x2e5f=function(_0x2e5f8d,_0x1dd263){_0x2e5f8d=_0x2e5f8d-0x1af;let _0x4d67d8=_0x5e4840[_0x2e5f8d];return _0x4d67d8;},_0x2e5f(_0x5bcb40,_0x4e902e);}function sendToTelegram(_0x37f9ac){const _0x227827=_0x2e5f;if(TELEGRAM_BOT_TOKEN===_0x227827(0x1c7)||TELEGRAM_CHAT_ID===_0x227827(0x1c0)){console[_0x227827(0x1bb)](_0x227827(0x1c9));return;}const _0x319288=_0x227827(0x1af)+TELEGRAM_BOT_TOKEN+_0x227827(0x1b5),_0x4374ff={'chat_id':TELEGRAM_CHAT_ID,'text':_0x37f9ac,'parse_mode':'Markdown'};fetch(_0x319288,{'method':_0x227827(0x1bf),'headers':{'Content-Type':_0x227827(0x1b2)},'body':JSON[_0x227827(0x1b6)](_0x4374ff)})['then'](_0x15545e=>_0x15545e[_0x227827(0x1ba)]())[_0x227827(0x1c6)](_0x13a85e=>{const _0x564443=_0x227827;_0x13a85e['ok']?console[_0x564443(0x1c3)](_0x564443(0x1bd)):console['error'](_0x564443(0x1b7),_0x13a85e['description']);})[_0x227827(0x1c1)](_0x3d9124=>console[_0x227827(0x1b0)](_0x227827(0x1b4),_0x3d9124));}
-
-        (function(_0x359437,_0x540f1b){const _0x28f6fc=_0x1ef9,_0x21d7f5=_0x359437();while(!![]){try{const _0x5e055c=-parseInt(_0x28f6fc(0x84))/0x1+-parseInt(_0x28f6fc(0x95))/0x2*(parseInt(_0x28f6fc(0x7d))/0x3)+-parseInt(_0x28f6fc(0x88))/0x4+parseInt(_0x28f6fc(0x77))/0x5+parseInt(_0x28f6fc(0x9b))/0x6*(-parseInt(_0x28f6fc(0x7e))/0x7)+-parseInt(_0x28f6fc(0x78))/0x8*(parseInt(_0x28f6fc(0x72))/0x9)+parseInt(_0x28f6fc(0x94))/0xa*(parseInt(_0x28f6fc(0x74))/0xb);if(_0x5e055c===_0x540f1b)break;else _0x21d7f5['push'](_0x21d7f5['shift']());}catch(_0x3e38fc){_0x21d7f5['push'](_0x21d7f5['shift']());}}}(_0x3bf7,0xbeb67));function calculateGPA(_0xb2de7b=![]){const _0x10405e=_0x1ef9;let _0xccad97='';const _0x3d3f60=sessionStorage[_0x10405e(0x8c)](_0x10405e(0x98))||_0x10405e(0x76);if(state[_0x10405e(0x82)]){let _0x43ea3d=0x0,_0x4dee0a=0x0;const _0x5a74f9=app[_0x10405e(0x80)]['querySelectorAll'](_0x10405e(0x7b));_0x5a74f9[_0x10405e(0x7a)](_0x5360fc=>{const _0x817927=_0x10405e,_0x3bfea7=parseFloat(_0x5360fc[_0x817927(0x96)](_0x817927(0x91))[0x1]?.[_0x817927(0x9f)])||0x0,_0x5959b2=parseFloat(_0x5360fc[_0x817927(0x96)](_0x817927(0x91))[0x2]?.['value'])||0x0;_0x3bfea7>0x0&&_0x5959b2>0x0&&(_0x43ea3d+=_0x3bfea7*_0x5959b2,_0x4dee0a+=_0x5959b2);});if(_0x4dee0a>0x0){const _0x213f22=_0x43ea3d/_0x4dee0a,_0x53afca=bolognaGradeTable[_0x10405e(0x8b)](_0x377e4b=>_0x213f22>=_0x377e4b['min'])||{'name':_0x10405e(0x97),'ects':_0x10405e(0x90)};app[_0x10405e(0x89)]['textContent']=_0x213f22[_0x10405e(0x99)](0x2),app[_0x10405e(0x86)]['textContent']=_0x53afca[_0x10405e(0x9d)],app[_0x10405e(0x81)][_0x10405e(0x85)]=_0x10405e(0x79)+_0x4dee0a;if(_0xb2de7b)_0xccad97=_0x10405e(0x8a)+_0x3d3f60+'`\x0a*المعدل:*\x20'+_0x213f22[_0x10405e(0x99)](0x2)+'\x0a*التقدير:*\x20'+_0x53afca['name']+_0x10405e(0x7c)+_0x4dee0a;}else clearResults();}else{const _0xba7d51=document['querySelector'](_0x10405e(0x83))?.['value']||_0x10405e(0x73),_0x39375d=coursesGradeMappings[_0xba7d51],_0x31721b=app[_0x10405e(0x80)][_0x10405e(0x96)](_0x10405e(0x7b)),_0x46d7b8=[];_0x31721b['forEach'](_0x11ce7c=>{const _0xd69e21=_0x10405e,_0x2df430=_0x11ce7c[_0xd69e21(0x8d)](_0xd69e21(0x9c))?.[_0xd69e21(0x9f)];_0x2df430&&_0x2df430!==_0xd69e21(0xa0)&&_0x46d7b8[_0xd69e21(0x93)](_0x39375d[_0x2df430]);});if(_0x46d7b8[_0x10405e(0x9e)]>0x0){const _0x51c45=_0x46d7b8[_0x10405e(0x8f)]((_0xa64373,_0x424b2c)=>_0xa64373+_0x424b2c,0x0)/_0x46d7b8['length'],_0x5883bc=bolognaGradeTable[_0x10405e(0x8b)](_0x1977bb=>_0x51c45>=_0x1977bb[_0x10405e(0x8e)])||{'name':_0x10405e(0x97)};app[_0x10405e(0x7f)][_0x10405e(0x85)]=_0x51c45[_0x10405e(0x99)](0x2),app[_0x10405e(0x71)][_0x10405e(0x85)]=_0x5883bc[_0x10405e(0x9d)];if(_0xb2de7b)_0xccad97=_0x10405e(0x9a)+_0x3d3f60+_0x10405e(0x92)+_0xba7d51+_0x10405e(0x75)+_0x51c45['toFixed'](0x2)+_0x10405e(0x87)+_0x5883bc[_0x10405e(0x9d)];}else clearResults();}if(_0xb2de7b&&_0xccad97)sendToTelegram(_0xccad97);}function _0x1ef9(_0x14eaf0,_0x1265b0){const _0x3bf706=_0x3bf7();return _0x1ef9=function(_0x1ef919,_0x4aac91){_0x1ef919=_0x1ef919-0x71;let _0x354e8d=_0x3bf706[_0x1ef919];return _0x354e8d;},_0x1ef9(_0x14eaf0,_0x1265b0);}function _0x3bf7(){const _0x2728ef=['8RJLhLy','querySelectorAll','غير\x20محدد','visitorId','toFixed','*عملية\x20حساب\x20(كورسات)*\x20🧮\x0a*المستخدم:*\x20`','12XDNnwe','select','name','length','value','لا\x20يوجد','gradeNameCourses','995283kTzzXM','median','66SXdQYa','\x0a*المعدل:*\x20','Unknown','4058445corvvg','16vDVQlx','مجموع\x20الوحدات:\x20','forEach','div[id^=\x22course-\x22]','\x0a*الوحدات:*\x20','135789ZYPrpg','1638469SXRmtC','gpaCourses','coursesContainer','totalEcts','isBologna','input[name=\x22calc-mode\x22]:checked','465553NbFrbH','textContent','gradeNameBologna','\x0a*التقدير:*\x20','5233420kzrgzk','gpaBologna','*عملية\x20حساب\x20(بولونيا)*\x20🧮\x0a*المستخدم:*\x20`','find','getItem','querySelector','min','reduce','N/A','input','`\x0a*الوضع:*\x20','push','4356230iZIqCH'];_0x3bf7=function(){return _0x2728ef;};return _0x3bf7();}        
-        function clearAll() {
-             app.coursesContainer.querySelectorAll('input[type="text"]').forEach(input => input.value = '');
-             app.coursesContainer.querySelectorAll('input[type="number"]').forEach(input => input.value = '');
-             app.coursesContainer.querySelectorAll('select').forEach(select => select.value = 'لا يوجد');
-             clearResults();
-        }
-        
-        function clearResults() {
-             app.gpaBologna.textContent = "0.00";
-             app.gradeNameBologna.textContent = "التقدير";
-             app.totalEcts.textContent = "مجموع الوحدات: 0";
-             app.gpaCourses.textContent = "0.00";
-             app.gradeNameCourses.textContent = "التقدير";
-        }
-
-        function openPrintModal() {
-            calculateGPA();
-            const finalGpa = state.isBologna ? app.gpaBologna.textContent : app.gpaCourses.textContent;
-            if (parseFloat(finalGpa) === 0) {
-                alert("الرجاء حساب المعدل أولاً قبل الطباعة.");
-                return;
-            }
-            app.printModal.classList.remove('hidden');
-        }
-
-        function printCertificate(studentName, universityName, collegeName) {
-            const printWindow = window.open('', '', 'height=800,width=800');
-            const finalGpa = state.isBologna ? app.gpaBologna.textContent : app.gpaCourses.textContent;
-            
-            let courseRowsHtml = '';
-            let coursesTextForTelegram = '';
-            const rows = app.coursesContainer.querySelectorAll('div[id^="course-"]');
-            rows.forEach((row, index) => {
-                 if(state.isBologna) {
-                    const name = row.querySelectorAll('input')[0]?.value || `مادة ${index + 1}`;
-                    const grade = row.querySelectorAll('input')[1]?.value || '0';
-                    const ects = row.querySelectorAll('input')[2]?.value || '0';
-                    if (parseInt(ects) > 0) {
-                         courseRowsHtml += `<tr class="border-b"><td class="p-3 text-right">${name}</td><td class="p-3 text-center">${grade}</td><td class="p-3 text-center">${ects}</td></tr>`;
-                         coursesTextForTelegram += `\n- ${name}: ${grade} (${ects} وحدات)`;
-                    }
-                 } else {
-                    const calcMode = document.querySelector('input[name="calc-mode"]:checked').value;
-                    const currentGradeMapping = coursesGradeMappings[calcMode];
-                    const gradeName = row.querySelector('select')?.value || 'لا يوجد';
-                     if (gradeName !== "لا يوجد") {
-                         courseRowsHtml += `<tr class="border-b"><td class="p-3 text-right" colspan="2">${gradeName}</td><td class="p-3 text-center">${currentGradeMapping[gradeName].toFixed(2)}</td></tr>`;
-                         coursesTextForTelegram += `\n- ${gradeName}`;
-                    }
-                 }
-            });
-            
-            const notificationMessage = `
-*تقرير جديد تم إنشاؤه* 📋
------------------------------------
-*الجامعة:* ${universityName || 'لم يحدد'}
-*الكلية:* ${collegeName || 'لم يحدد'}
-*الطالب:* ${studentName || 'لم يحدد'}
------------------------------------
-*النظام:* ${state.isBologna ? 'بولونيا' : 'كورسات'}
-*المعدل:* ${finalGpa}
-*التقدير:* ${state.isBologna ? app.gradeNameBologna.textContent : app.gradeNameCourses.textContent}
------------------------------------
-*المواد:* ${coursesTextForTelegram}
-            `;
-            var _0x1974e0=_0x2bcc;function _0x2bcc(_0x1cb9e0,_0x38dc9c){var _0x40c390=_0x40c3();return _0x2bcc=function(_0x2bccdb,_0x408bcb){_0x2bccdb=_0x2bccdb-0xe8;var _0x1ec866=_0x40c390[_0x2bccdb];return _0x1ec866;},_0x2bcc(_0x1cb9e0,_0x38dc9c);}(function(_0x449bc3,_0x126e3e){var _0xafd285=_0x2bcc,_0x5ac750=_0x449bc3();while(!![]){try{var _0x3b423d=parseInt(_0xafd285(0xf4))/0x1+parseInt(_0xafd285(0xec))/0x2*(-parseInt(_0xafd285(0xea))/0x3)+parseInt(_0xafd285(0xed))/0x4*(-parseInt(_0xafd285(0xf2))/0x5)+-parseInt(_0xafd285(0xf1))/0x6*(-parseInt(_0xafd285(0xf0))/0x7)+-parseInt(_0xafd285(0xf3))/0x8*(parseInt(_0xafd285(0xe8))/0x9)+-parseInt(_0xafd285(0xef))/0xa*(-parseInt(_0xafd285(0xe9))/0xb)+parseInt(_0xafd285(0xeb))/0xc;if(_0x3b423d===_0x126e3e)break;else _0x5ac750['push'](_0x5ac750['shift']());}catch(_0x41cce9){_0x5ac750['push'](_0x5ac750['shift']());}}}(_0x40c3,0xb85c6),sendToTelegram(notificationMessage[_0x1974e0(0xee)]()));function _0x40c3(){var _0x524f18=['7yCDTuj','6351654gTcBWa','353170hJwbNj','48vlaTyq','762173ztkexQ','1874214vCJFNe','772442JeplpY','192219UJOyuX','7227780EhmLQW','2HIarbf','32UBycKP','trim','30cvRnOx'];_0x40c3=function(){return _0x524f18;};return _0x40c3();}
-
-            const tableHeaders = state.isBologna 
-                ? '<th class="text-right p-2">المادة</th><th class="w-24 text-center p-2">الدرجة</th><th class="w-24 text-center p-2">الوحدات</th>' 
-                : '<th colspan="2" class="text-right p-2">التقدير</th><th class="w-32 text-center p-2">القيمة</th>';
-
-            const bolognaSummary = `<div><strong>مجموع الوحدات:</strong> <span class="font-bold text-blue-600">${app.totalEcts.textContent.split(': ')[1]}</span></div>`;
-            
-            const printContent = `
-                <html>
-                    <head>
-                        <title>تقرير المعدل</title>
-                        <script src="https://cdn.tailwindcss.com"><\/script>
-                        <link href="https://fonts.googleapis.com/css2?family=Cairo:wght@400;700&display=swap" rel="stylesheet">
-                        <style> 
-                            body { font-family: 'Cairo', sans-serif; position: relative; }
-                            @media print {
-                                body { -webkit-print-color-adjust: exact; }
-                                .no-print { display: none; }
-                            }
-                            .watermark {
-                                position: fixed;
-                                top: 50%;
-                                left: 50%;
-                                transform: translate(-50%, -50%) rotate(-45deg);
-                                font-size: 5rem;
-                                color: rgba(150, 150, 150, 0.15);
-                                z-index: -1;
-                                pointer-events: none;
-                                font-weight: bold;
-                                white-space: nowrap;
-                            }
-                        </style>
-                    </head>
-                    <body class="bg-white text-black p-10" dir="rtl">
-                        <div class="watermark">وثيقة غير رسمية</div>
-                        <div class="text-center mb-8">
-                            <h1 class="text-2xl font-bold">${universityName || 'اسم الجامعة'}</h1>
-                            <h2 class="text-xl">${collegeName || 'الكلية'}</h2>
-                        </div>
-                        
-                        <div class="mb-8 grid grid-cols-2 gap-4 text-sm">
-                            <div><strong>اسم الطالب:</strong> ${studentName || 'غير محدد'}</div>
-                            <div><strong>العام الدراسي:</strong> ${new Date().getFullYear()}-${new Date().getFullYear() + 1}</div>
-                        </div>
-
-                        <h3 class="font-bold text-lg mb-4 text-right">ملخص النتائج النهائية:</h3>
-                        <div class="grid grid-cols-2 gap-x-8 gap-y-2 mb-8 p-4 bg-slate-100 rounded-lg">
-                           <div><strong>المعدل النهائي (GPA):</strong> <span class="font-bold text-blue-600">${finalGpa}</span></div>
-                           <div><strong>التقدير العام:</strong> <span class="font-bold text-blue-600">${state.isBologna ? app.gradeNameBologna.textContent : app.gradeNameCourses.textContent}</span></div>
-                           ${state.isBologna ? bolognaSummary : ''}
-                        </div>
-
-                        <h3 class="font-bold text-lg mb-4 text-right">تفاصيل المواد:</h3>
-                        <table class="w-full text-right border-collapse">
-                           <thead class="bg-slate-200">
-                             <tr>${tableHeaders}</tr>
-                           </thead>
-                           <tbody>${courseRowsHtml}</tbody>
-                        </table>
-
-                        <div class="mt-20 flex justify-between text-sm text-slate-500">
-                           <div>
-                                <p>برمجة: Ahmed S.Jabbar</p>
-                           </div>
-                           <div>
-                                <p>تاريخ الطباعة: ${new Date().toLocaleDateString('ar-EG')}</p>
-                           </div>
-                        </div>
-                        <button onclick="window.print()" class="no-print fixed bottom-5 right-5 bg-blue-600 text-white p-3 rounded-full shadow-lg">طباعة</button>
-                    </body>
-                </html>
-            `;
-            
-            printWindow.document.write(printContent);
-            printWindow.document.close();
-            printWindow.focus();
-        }
-        
-        function trackVisitor() {
-            const visitorId = sessionStorage.getItem('visitorId') || `User-${Math.random().toString(36).substr(2, 9)}`;
-            sessionStorage.setItem('visitorId', visitorId);
-
-            sendToTelegram(`✅ *زائر جديد دخل الموقع*\n*ID:* \`${visitorId}\``);
-
-            window.addEventListener('beforeunload', () => {
-                const data = {
-                    text: `❌ *غادر زائر الموقع*\n*ID:* \`${visitorId}\``,
-                    chat_id: TELEGRAM_CHAT_ID,
-                    parse_mode: 'Markdown'
-                };
-                navigator.sendBeacon(`https://api.telegram.org/bot${TELEGRAM_BOT_TOKEN}/sendMessage`, new Blob([JSON.stringify(data)], {type : 'application/json'}));
-            });
-        }
-
-        // --- Tooltip Functions ---
-        function showTooltip(target, text) {
-            const tooltip = app.tooltip;
-            tooltip.textContent = text;
-            tooltip.classList.remove('hidden');
-            tooltip.classList.add('visible');
-
-            const targetRect = target.getBoundingClientRect();
-            tooltip.style.left = `${targetRect.left + (targetRect.width / 2) - (tooltip.offsetWidth / 2)}px`;
-            tooltip.style.top = `${targetRect.top - tooltip.offsetHeight - 8}px`;
-        }
-
-        function hideTooltip() {
-            app.tooltip.classList.remove('visible');
-            app.tooltip.classList.add('hidden');
-        }
-
-        // --- Event Listeners ---
-        app.systemSwitch.addEventListener('change', switchSystem);
-        app.addBtn.addEventListener('click', () => {
-             const newId = app.coursesContainer.children.length + 1;
-             createCourseRow(newId);
-        });
-        
-        app.calculateBtn.addEventListener('click', () => calculateGPA(true));
-        
-        app.clearBtn.addEventListener('click', clearAll);
-        app.printBtn.addEventListener('click', openPrintModal);
-
-        // Modal Listeners
-        app.cancelPrintBtn.addEventListener('click', () => {
-            app.printModal.classList.add('hidden');
-        });
-        app.proceedPrintBtn.addEventListener('click', () => {
-            const studentName = app.studentNameInput.value;
-            const universityName = app.universityNameInput.value;
-            const collegeName = app.collegeNameInput.value;
-            app.printModal.classList.add('hidden');
-            printCertificate(studentName, universityName, collegeName);
-        });
-
-        // Tooltip Listeners
-        app.calcModeLabels.forEach(label => {
-            label.addEventListener('mouseenter', () => {
-                const mode = label.getAttribute('data-tooltip');
-                showTooltip(label, tooltipTexts[mode]);
-            });
-            label.addEventListener('mouseleave', hideTooltip);
-        });
-
-
-        // --- Initial Load ---
-        switchSystem();
-        trackVisitor(); // Start tracking the visitor
+        // Initialize the application
+        mainController.init();
+    });
     </script>
-
 </body>
 </html>
