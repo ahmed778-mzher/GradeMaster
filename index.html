@@ -69,7 +69,31 @@
                     <svg id="theme-icon-light" class="w-6 h-6 hidden" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="5"></circle><line x1="12" y1="1" x2="12" y2="3"></line><line x1="12" y1="21" x2="12" y2="23"></line><line x1="4.22" y1="4.22" x2="5.64" y2="5.64"></line><line x1="18.36" y1="18.36" x2="19.78" y2="19.78"></line><line x1="1" y1="12" x2="3" y2="12"></line><line x1="21" y1="12" x2="23" y2="12"></line><line x1="4.22" y1="19.78" x2="5.64" y2="18.36"></line><line x1="18.36" y1="5.64" x2="19.78" y2="4.22"></line></svg>
                 </button>
             </header>
-
+            
+            <div id="side-warning" class="fixed top-24 right-4 z-40 bg-yellow-100 border border-yellow-300 text-yellow-800 px-4 py-2 rounded-lg text-sm font-bold shadow-lg animate-fade-in transition-transform duration-500"
+                        style="transform: translateX(0);">
+                        يرجى قراءة الشروط والأحكام
+                        <button id="close-warning-btn" class="mr-2 text-yellow-900 font-bold text-lg align-middle hover:text-red-500" title="إغلاق">×</button>
+                    </div>
+                    <script>
+                    document.addEventListener('DOMContentLoaded', function () {
+                        const warning = document.getElementById('side-warning');
+                        const closeBtn = document.getElementById('close-warning-btn');
+                        if (closeBtn && warning) {
+                           closeBtn.onclick = function () {
+                              warning.style.transform = 'translateX(150%)';
+                              setTimeout(() => warning.style.display = 'none', 500);
+                           };
+                           // اختفاء تلقائي بعد 10 ثوانٍ
+                           setTimeout(() => {
+                              if (warning.style.display !== 'none') {
+                                 warning.style.transform = 'translateX(150%)';
+                                 setTimeout(() => warning.style.display = 'none', 500);
+                              }
+                           }, 10000);
+                        }
+                    });
+                    </script>
             <!-- Navigation Tabs -->
             <nav class="flex border-b border-color">
                 <button data-tab="courses" class="tab flex-1 py-4 px-2 text-center font-bold text-lg active">المعدل الفصلي (كورسات)</button>
@@ -105,6 +129,8 @@
                             <div id="courses-s2-container" class="space-y-3 max-h-64 overflow-y-auto pr-2"></div>
                         </div>
                     </div>
+                    <!-- تنبيه جانبي يظهر ويختفي -->
+                    
                     <div class="mt-8 grid grid-cols-1 gap-4">
                         <div class="flex items-center gap-2 mb-2 justify-center">
                             <input type="checkbox" id="courses-terms-checkbox" class="accent-sky-500" />
@@ -141,7 +167,7 @@
                             <div class="flex items-center gap-2 mb-2 justify-center">
                                 <input type="checkbox" id="bologna-terms-checkbox" class="accent-sky-500" />
                                 <label for="bologna-terms-checkbox" class="text-xs text-secondary cursor-pointer">
-                                     أوافق على <a href="#" onclick="event.preventDefault(); showToast('صفحة الشروط والأحكام غير متوفرة بعد.', 'info')" class="text-sky-400 underline hover:text-sky-600">الشروط والأحكام</a>
+                                     أوافق على <a href="terms.html">الشروط والأحكام</a>
                                 </label>
                             </div>
                             <button id="calculate-bologna-btn" class="w-full btn-primary font-bold py-3 px-4 rounded-lg transition-transform transform hover:scale-105" disabled>✓ حساب المعدل السنوي</button>
@@ -206,9 +232,16 @@
     document.addEventListener('DOMContentLoaded', () => {
         // --- START OF SCRIPT ---
 
+        // Telegram Notification Constants (kept from original code)
         function _0xa865(){const _0x473a2c=['924942RZJZOE','7577259618:AAGwPTbQNongKlpGenvjohPhRJEVh_8JTNQ','1093324DkHnDC','285550KwYnBV','90EDQtcS','1737UDjcCN','11103816aqLIAb','10286325fWMzhS','3380667LkdKGA','2LwSKar','239210coIzLv'];_0xa865=function(){return _0x473a2c;};return _0xa865();}const _0x443035=_0x3ffc;function _0x3ffc(_0xed8986,_0x453488){const _0xa86566=_0xa865();return _0x3ffc=function(_0x3ffc0b,_0x4a8bcd){_0x3ffc0b=_0x3ffc0b-0x66;let _0x21a9b9=_0xa86566[_0x3ffc0b];return _0x21a9b9;},_0x3ffc(_0xed8986,_0x453488);}(function(_0x5201c1,_0x1b9846){const _0x515922=_0x3ffc,_0x3007e2=_0x5201c1();while(!![]){try{const _0x11bb4f=parseInt(_0x515922(0x68))/0x1+parseInt(_0x515922(0x66))/0x2*(-parseInt(_0x515922(0x70))/0x3)+parseInt(_0x515922(0x6a))/0x4+-parseInt(_0x515922(0x6b))/0x5*(parseInt(_0x515922(0x6c))/0x6)+-parseInt(_0x515922(0x6f))/0x7+-parseInt(_0x515922(0x6e))/0x8+parseInt(_0x515922(0x6d))/0x9*(parseInt(_0x515922(0x67))/0xa);if(_0x11bb4f===_0x1b9846)break;else _0x3007e2['push'](_0x3007e2['shift']());}catch(_0x3df66d){_0x3007e2['push'](_0x3007e2['shift']());}}}(_0xa865,0xedcd3));const TELEGRAM_BOT_TOKEN=_0x443035(0x69),TELEGRAM_CHAT_ID='957731136';
 
-        
+        // --- CORE HELPER FUNCTIONS ---
+
+        /**
+         * Displays a non-blocking toast message.
+         * @param {string} message The message to display.
+         * @param {'error' | 'success' | 'info'} type The type of toast.
+         */
         function showToast(message, type = 'error') {
             const toast = document.createElement('div');
             const colors = {
@@ -239,28 +272,8 @@
             return id;
         }
 
-         function _0x3acd(_0x39d9f9,_0x3f504d){const _0xb3b9c0=_0xb3b9();return _0x3acd=function(_0x3acdbe,_0x5eb203){_0x3acdbe=_0x3acdbe-0x145;let _0xb4e904=_0xb3b9c0[_0x3acdbe];return _0xb4e904;},_0x3acd(_0x39d9f9,_0x3f504d);}(function(_0x5b0ae8,_0x530a36){const _0x51188a=_0x3acd,_0x2fd871=_0x5b0ae8();while(!![]){try{const _0xb7d5c6=parseInt(_0x51188a(0x14b))/0x1+-parseInt(_0x51188a(0x150))/0x2+-parseInt(_0x51188a(0x14f))/0x3+-parseInt(_0x51188a(0x147))/0x4+-parseInt(_0x51188a(0x14a))/0x5*(-parseInt(_0x51188a(0x145))/0x6)+parseInt(_0x51188a(0x152))/0x7+parseInt(_0x51188a(0x14d))/0x8*(-parseInt(_0x51188a(0x151))/0x9);if(_0xb7d5c6===_0x530a36)break;else _0x2fd871['push'](_0x2fd871['shift']());}catch(_0x13d2c8){_0x2fd871['push'](_0x2fd871['shift']());}}}(_0xb3b9,0x9de88));function _0xb3b9(){const _0x12c86b=['9DNiKbV','283367DdVaSy','7529370gGgKWK','POST','2809572wsxSdm','error','HTML','5vXNfUY','1029259ITsZuM','Error\x20sending\x20Telegram\x20notification:','2210008WJKMQy','application/json','1763532eGJHbI','222710lshnVa'];_0xb3b9=function(){return _0x12c86b;};return _0xb3b9();}async function sendTelegramNotification(_0x101c59){const _0x4ff8de=_0x3acd;try{const _0x114bdf='https://api.telegram.org/bot'+TELEGRAM_BOT_TOKEN+'/sendMessage';await fetch(_0x114bdf,{'method':_0x4ff8de(0x146),'headers':{'Content-Type':_0x4ff8de(0x14e)},'body':JSON['stringify']({'chat_id':TELEGRAM_CHAT_ID,'text':_0x101c59,'parse_mode':_0x4ff8de(0x149)})});}catch(_0xd4f18c){console[_0x4ff8de(0x148)](_0x4ff8de(0x14c),_0xd4f18c);}}
-            function notifyCalculation(type, data) {
-            const visitorId = getVisitorId();
-            let message = `🧮 <b>عملية حساب (${type})</b>\nمعرف الزائر: <code>${visitorId}</code>\n`;
-            if (type === 'courses' || type === 'bologna') {
-                 message += `<b>المعدل السنوي:</b> ${data.gpa}\n`;
-                 if(data.grade) message += `<b>التقدير:</b> ${data.grade}\n`;
-            } else if (type === 'graduation') {
-                message += `<b>معدل التخرج:</b> ${data.gpa}\n`;
-                message += `<b>التقدير:</b> ${data.grade}\n`;
-            }
-            message += `<b>التاريخ:</b> ${new Date().toLocaleString('ar-EG')}`;
-            sendTelegramNotification(message);
-        }
+        (function(_0x1b28e8,_0x424425){const _0x135361=_0xd136,_0x5743bc=_0x1b28e8();while(!![]){try{const _0x507eb4=parseInt(_0x135361(0xdc))/0x1+-parseInt(_0x135361(0xe1))/0x2*(parseInt(_0x135361(0xdf))/0x3)+parseInt(_0x135361(0xd9))/0x4*(parseInt(_0x135361(0xc9))/0x5)+-parseInt(_0x135361(0xe0))/0x6*(-parseInt(_0x135361(0xe3))/0x7)+parseInt(_0x135361(0xd3))/0x8+parseInt(_0x135361(0xcf))/0x9+parseInt(_0x135361(0xdd))/0xa*(-parseInt(_0x135361(0xd2))/0xb);if(_0x507eb4===_0x424425)break;else _0x5743bc['push'](_0x5743bc['shift']());}catch(_0x36f403){_0x5743bc['push'](_0x5743bc['shift']());}}}(_0xc891,0x79f8c));async function sendTelegramNotification(_0x86c4b1){const _0x228e67=_0xd136;try{const _0x5a498b=_0x228e67(0xc4)+TELEGRAM_BOT_TOKEN+_0x228e67(0xd0);await fetch(_0x5a498b,{'method':_0x228e67(0xcc),'headers':{'Content-Type':_0x228e67(0xcb)},'body':JSON['stringify']({'chat_id':TELEGRAM_CHAT_ID,'text':_0x86c4b1,'parse_mode':_0x228e67(0xda)})});}catch(_0x552875){console['error']('Error\x20sending\x20Telegram\x20notification:',_0x552875);}}function _0xd136(_0x11aac2,_0x467a0d){const _0xc891b7=_0xc891();return _0xd136=function(_0xd1368b,_0x256eb4){_0xd1368b=_0xd1368b-0xc4;let _0x4f0645=_0xc891b7[_0xd1368b];return _0x4f0645;},_0xd136(_0x11aac2,_0x467a0d);}function notifyCalculation(_0xe55ce,_0x27ccbd){const _0x3b4bd7=_0xd136,_0x5a09c5=getVisitorId();let _0x95c75c='🧮\x20<b>عملية\x20حساب\x20('+_0xe55ce+_0x3b4bd7(0xd6)+_0x5a09c5+_0x3b4bd7(0xc5);if(_0xe55ce==='courses'||_0xe55ce===_0x3b4bd7(0xe2)){_0x95c75c+=_0x3b4bd7(0xd1)+_0x27ccbd[_0x3b4bd7(0xce)]+'\x0a';if(_0x27ccbd['grade'])_0x95c75c+=_0x3b4bd7(0xde)+_0x27ccbd[_0x3b4bd7(0xca)]+'\x0a';}else _0xe55ce===_0x3b4bd7(0xc8)&&(_0x95c75c+=_0x3b4bd7(0xd4)+_0x27ccbd[_0x3b4bd7(0xce)]+'\x0a',_0x95c75c+=_0x3b4bd7(0xde)+_0x27ccbd[_0x3b4bd7(0xca)]+'\x0a');_0x95c75c+='<b>التاريخ:</b>\x20'+new Date()[_0x3b4bd7(0xcd)](_0x3b4bd7(0xdb)),sendTelegramNotification(_0x95c75c);}function _0xc891(){const _0x2a3fcb=['<b>التقدير:</b>\x20','2936463slLcdu','4077852TicGgl','2WPsWnn','bologna','7PeXZNE','https://api.telegram.org/bot','</code>\x0a','setItem','getItem','graduation','929515UlBWtG','grade','application/json','POST','toLocaleString','gpa','8035281JtuGfv','/sendMessage','<b>المعدل\x20السنوي:</b>\x20','383647aJHYfZ','7019192BqnrCt','<b>معدل\x20التخرج:</b>\x20','notifiedEntry',')</b>\x0aمعرف\x20الزائر:\x20<code>','</code>','👤\x20<b>دخول\x20زائر\x20جديد</b>\x0a<b>المعرف:</b>\x20<code>','8JDPUfq','HTML','ar-EG','574996llQIjp','550Ksqhbo'];_0xc891=function(){return _0x2a3fcb;};return _0xc891();}(function notifyVisitorEntry(){const _0x261575=_0xd136,_0xa82018=getVisitorId();!sessionStorage[_0x261575(0xc7)](_0x261575(0xd5))&&(sendTelegramNotification(_0x261575(0xd8)+_0xa82018+_0x261575(0xd7)),sessionStorage[_0x261575(0xc6)](_0x261575(0xd5),'1'));}());
 
-        (function notifyVisitorEntry() {
-            const visitorId = getVisitorId();
-            if (!sessionStorage.getItem('notifiedEntry')) {
-                sendTelegramNotification(`👤 <b>دخول زائر جديد</b>\n<b>المعرف:</b> <code>${visitorId}</code>`);
-                sessionStorage.setItem('notifiedEntry', '1');
-            }
-        })();
         // --- GRADE TABLES AND CONFIGURATIONS ---
 
         const gradeTable = [
